@@ -67,9 +67,6 @@ export function TopNav() {
       </nav>
 
       <div className="ml-auto flex items-center gap-4">
-        <Link href="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground">
-          Log in
-        </Link>
         <button
           type="button"
           onClick={() => router.push("/search")}
