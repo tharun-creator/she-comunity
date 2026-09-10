@@ -292,6 +292,21 @@ export async function fetchDiscoverFeed(area?: ChennaiArea | "All") {
   return filtered.filter((p) => p.isPubliclyVisible).sort((a, b) => b.reviewCount - a.reviewCount);
 }
 
+// Unlike fetchDiscoverFeed, does not filter by isPubliclyVisible — admin
+// needs to see PGs below the PRD §11 threshold too.
+export async function fetchAllPgsAdmin(): Promise<Pg[]> {
+  await delay();
+  return [...pgs].sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
+}
+
+export async function setPgVisibility(pgId: string, visible: boolean): Promise<Pg> {
+  await delay(150);
+  const pg = pgs.find((p) => p.id === pgId);
+  if (!pg) throw new Error("PG not found");
+  pg.isPubliclyVisible = visible;
+  return pg;
+}
+
 export async function searchPgs(query: string) {
   await delay(150);
   const q = query.trim().toLowerCase();
