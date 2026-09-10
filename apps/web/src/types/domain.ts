@@ -127,6 +127,8 @@ export interface UserProfile {
   savedPgIds: string[];
   joinedPgIds: string[];
   accountCreatedAt: string;
+  /** Admin moderation flag. Undefined/false = active account. */
+  isSuspended?: boolean;
 }
 
 /**
