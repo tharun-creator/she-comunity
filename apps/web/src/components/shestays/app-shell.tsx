@@ -10,6 +10,7 @@ import { MyPgsList } from "./my-pgs-list";
 import { MyCommunitiesList } from "./my-communities-list";
 import { SidebarExtras } from "./sidebar-extras";
 import { MobilePostFab } from "./mobile-post-fab";
+import { OnboardingTour } from "./onboarding-tour";
 import { cn } from "@/lib/utils";
 
 const MOBILE_NAV_ITEMS = [
@@ -32,6 +33,7 @@ export function AppShell({
 
   return (
     <div className="flex min-h-screen w-full flex-col">
+      <OnboardingTour />
       <TopNav />
 
       <div className="mx-auto flex w-full max-w-[1600px] flex-1 xl:px-6 2xl:px-10">
