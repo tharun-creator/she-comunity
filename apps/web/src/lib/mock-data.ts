@@ -1,4 +1,4 @@
-import type { AppNotification, ChennaiArea, Comment, Pg, Post, UserProfile } from "@/types/domain";
+import type { AppNotification, ChennaiArea, Comment, Pg, Post, Report, ReportReason, UserProfile } from "@/types/domain";
 
 // In-memory mock data store standing in for the FastAPI + Supabase backend
 // (see docs/TECH-STACK.md). Every function here has the async signature the
@@ -249,6 +249,41 @@ const notifications: AppNotification[] = [
   },
 ];
 
+// Seeded so the admin reports queue isn't empty on first load — one pending,
+// one already actioned, matching the moderation flow described in PRD §5.5.
+const reports: Report[] = [
+  {
+    id: "report-1",
+    targetType: "post",
+    targetId: "post-2",
+    reason: "harassment",
+    detail: "Feels like this could identify the warden unfairly to other residents.",
+    status: "pending",
+    createdAt: hoursAgo(6),
+  },
+  {
+    id: "report-2",
+    targetType: "comment",
+    targetId: "c-2",
+    reason: "other",
+    detail: "Flagging for review, not sure it needs action.",
+    status: "actioned",
+    createdAt: hoursAgo(30),
+  },
+];
+
+// Seed content has no real author id — named (non-anonymous) authors are only
+// ever identified by displayName. Used by fetchAllUsersAdmin (Task 4) to
+// correlate a report to the account it targets.
+function targetAuthorDisplayName(report: Report): string | null {
+  const target =
+    report.targetType === "post"
+      ? posts.find((p) => p.id === report.targetId)
+      : comments.find((c) => c.id === report.targetId);
+  if (!target || target.author.isAnonymous) return null;
+  return target.author.displayName ?? null;
+}
+
 const delay = (ms = 220) => new Promise((r) => setTimeout(r, ms));
 
 export async function fetchDiscoverFeed(area?: ChennaiArea | "All") {
@@ -480,7 +515,34 @@ export async function toggleSavePost(postId: string) {
   return post;
 }
 
-export async function reportContent(input: { targetType: "post" | "comment"; targetId: string; reason: string; detail?: string }) {
+export async function reportContent(input: {
+  targetType: "post" | "comment";
+  targetId: string;
+  reason: ReportReason;
+  detail?: string;
+}) {
   await delay(300);
-  return { ok: true, ...input };
+  reports.unshift({
+    id: `report-${reports.length + 1}`,
+    targetType: input.targetType,
+    targetId: input.targetId,
+    reason: input.reason,
+    detail: input.detail,
+    status: "pending",
+    createdAt: new Date().toISOString(),
+  });
+  return { ok: true as const, ...input };
+}
+
+export async function fetchReports(): Promise<Report[]> {
+  await delay();
+  return [...reports].sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
+}
+
+export async function resolveReport(id: string, status: "actioned" | "dismissed"): Promise<Report> {
+  await delay(150);
+  const report = reports.find((r) => r.id === id);
+  if (!report) throw new Error("Report not found");
+  report.status = status;
+  return report;
 }
