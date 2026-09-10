@@ -440,6 +440,53 @@ export async function fetchProfile() {
   return currentUser;
 }
 
+export interface AdminUserSummary extends UserProfile {
+  postCount: number;
+  reportsAgainstCount: number;
+  isSuspended: boolean;
+}
+
+// Synthetic roster for the admin panel — this mock layer only ever tracked a
+// single currentUser, but the named (non-anonymous) post/comment authors
+// already seeded above imply other accounts. fetchAllUsersAdmin correlates
+// against posts/comments/reports by displayName, since seed content carries
+// no real author id (see targetAuthorDisplayName above).
+const ADMIN_USER_ROSTER: { id: string; displayName: string; city: string }[] = [
+  { id: currentUser.id, displayName: currentUser.displayName, city: currentUser.city },
+  { id: "u-2", displayName: "Divya R.", city: "Chennai" },
+  { id: "u-3", displayName: "Sneha R.", city: "Chennai" },
+  { id: "u-4", displayName: "Meena K.", city: "Chennai" },
+  { id: "u-5", displayName: "Anjali T.", city: "Chennai" },
+];
+
+const suspendedUserIds = new Set<string>();
+
+export async function fetchAllUsersAdmin(): Promise<AdminUserSummary[]> {
+  await delay();
+  return ADMIN_USER_ROSTER.map((u) => ({
+    id: u.id,
+    displayName: u.displayName,
+    city: u.city,
+    pgsLivedAt: u.id === currentUser.id ? currentUser.pgsLivedAt : [],
+    savedPgIds: u.id === currentUser.id ? currentUser.savedPgIds : [],
+    joinedPgIds: u.id === currentUser.id ? currentUser.joinedPgIds : [],
+    accountCreatedAt: u.id === currentUser.id ? currentUser.accountCreatedAt : hoursAgo(24 * 60),
+    postCount: posts.filter((p) => !p.author.isAnonymous && p.author.displayName === u.displayName).length,
+    reportsAgainstCount: reports.filter((r) => targetAuthorDisplayName(r) === u.displayName).length,
+    isSuspended: suspendedUserIds.has(u.id),
+  }));
+}
+
+export async function setUserSuspended(userId: string, suspended: boolean): Promise<AdminUserSummary> {
+  await delay(150);
+  if (suspended) suspendedUserIds.add(userId);
+  else suspendedUserIds.delete(userId);
+  const users = await fetchAllUsersAdmin();
+  const user = users.find((u) => u.id === userId);
+  if (!user) throw new Error("User not found");
+  return user;
+}
+
 export async function createPg(input: { name: string; area: ChennaiArea; address?: string }) {
   await delay(300);
   const pg: Pg = {
