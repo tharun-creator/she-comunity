@@ -36,7 +36,7 @@ export default function SignupPage() {
     const { data, error: authError } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { display_name: displayName, city } },
+      options: { data: { display_name: displayName, city, women_attested: attested } },
     });
 
     setIsSubmitting(false);
