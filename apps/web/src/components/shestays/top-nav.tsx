@@ -8,11 +8,8 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { fetchNotifications, fetchProfile } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
-// "Community" is the real feed route. "Home" points at the same destination for now
-// (there's no distinct Home page yet) — rendered as a plain button rather than a second
-// <Link href="/"> because two Links sharing one href trips Next's internal href-keyed
-// dedup and logs a spurious duplicate-key warning.
 const NAV_LINKS = [
+  { href: "/", label: "Home", trackActive: true },
   { href: "/search", label: "Search", trackActive: true },
   { href: "/notifications", label: "Notifications", trackActive: true },
 ];
@@ -31,23 +28,6 @@ export function TopNav() {
       </Link>
 
       <nav className="ml-10 flex items-center gap-8">
-        <button
-          type="button"
-          onClick={() => router.push("/")}
-          className="py-4 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-        >
-          Home
-        </button>
-        <Link
-          href="/"
-          className={cn(
-            "relative py-4 text-sm font-medium transition-colors",
-            pathname === "/" ? "text-primary" : "text-muted-foreground hover:text-foreground"
-          )}
-        >
-          Community
-          {pathname === "/" && <span className="absolute inset-x-0 -bottom-px h-0.5 rounded-full bg-primary" />}
-        </Link>
         {NAV_LINKS.map((item) => {
           const active = item.trackActive && pathname === item.href;
           return (
