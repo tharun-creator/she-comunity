@@ -1,1 +1,1 @@
-from app.routers import health, pg, post, comment, vote, report, notification, user
+from app.routers import health, pg, post, comment, vote, report, notification, user, admin

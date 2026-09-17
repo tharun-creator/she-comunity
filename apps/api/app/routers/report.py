@@ -4,6 +4,7 @@ from uuid import UUID
 from app.schemas.report import ReportCreate, ReportResponse, ReportListResponse, ReportAction
 from app.middleware.auth import get_current_user, CurrentUser
 from app.deps.supabase import get_supabase_client
+from app.services.notify import notify_on_report_resolved
 
 router = APIRouter()
 
@@ -128,5 +129,9 @@ async def update_report(
 
     if update_result.error:
         raise HTTPException(status_code=400, detail=update_result.error.message)
+
+    # Notify reporter that their report was resolved
+    if update_data["status"] in ["actioned", "dismissed"]:
+        await notify_on_report_resolved(supabase, report["reporter_id"], str(report_id), report["reason"])
 
     return ReportResponse(**update_result.data)

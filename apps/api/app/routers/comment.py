@@ -5,6 +5,8 @@ from app.schemas.comment import CommentCreate, CommentResponse, CommentListRespo
 from app.middleware.auth import get_current_user, CurrentUser
 from app.deps.supabase import get_supabase_client
 from app.middleware.ratelimit import check_write_rate_limit
+from app.services.content_filter import auto_flag_content, create_auto_flag_report
+from app.services.notify import notify_on_reply
 
 router = APIRouter()
 
@@ -91,6 +93,9 @@ async def create_comment(
     # Check rate limit
     await check_write_rate_limit(current_user.user_id, "comment")
 
+    # Content filtering
+    flag_info = auto_flag_content(comment_data.body, "comment")
+
     # Get author info
     author_info = {"is_anonymous": comment_data.is_anonymous}
     if not comment_data.is_anonymous:
@@ -119,9 +124,24 @@ async def create_comment(
         raise HTTPException(status_code=400, detail=result.error.message)
 
     comment = result.data
+
+    # Auto-flag if content filter detected issues
+    if flag_info:
+        await create_auto_flag_report(
+            target_type="comment",
+            target_id=comment["id"],
+            author_id=current_user.user_id,
+            flag_info=flag_info,
+            supabase_client=supabase
+        )
+
     comment["author"] = author_info
     comment["my_vote"] = 0
     comment["upvotes"] = 0
     comment["downvotes"] = 0
+
+    # Notify post author of new reply (if not replying to own post)
+    if comment_data.parent_comment_id is None:  # Top-level comment only
+        await notify_on_reply(supabase, str(post_id), current_user.user_id, comment_data.body)
 
     return CommentResponse(**comment)

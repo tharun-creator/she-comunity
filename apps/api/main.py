@@ -9,7 +9,7 @@ from app.core.config import settings
 from app.middleware.errors import register_error_handlers, AppError
 from app.middleware.logging import StructuredLoggingMiddleware
 from app.middleware.ratelimit import RateLimitMiddleware
-from app.routers import pg, post, comment, vote, report, notification, user, health
+from app.routers import pg, post, comment, vote, report, notification, user, health, admin
 
 
 @asynccontextmanager
@@ -54,6 +54,7 @@ app.include_router(vote.router, prefix="/api/v1", tags=["votes"])
 app.include_router(report.router, prefix="/api/v1", tags=["reports"])
 app.include_router(notification.router, prefix="/api/v1", tags=["notifications"])
 app.include_router(user.router, prefix="/api/v1", tags=["users"])
+app.include_router(admin.router, prefix="/api/v1", tags=["admin"])
 
 
 @app.exception_handler(AppError)

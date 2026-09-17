@@ -5,6 +5,7 @@ from app.schemas.post import PostCreate, PostResponse, PostListResponse
 from app.middleware.auth import get_current_user, CurrentUser
 from app.deps.supabase import get_supabase_client
 from app.middleware.ratelimit import check_write_rate_limit
+from app.services.content_filter import auto_flag_content, create_auto_flag_report
 
 router = APIRouter()
 
@@ -70,6 +71,10 @@ async def create_post(
     # Check rate limit
     await check_write_rate_limit(current_user.user_id, "post")
 
+    # Content filtering - check for profanity and PII
+    combined_text = f"{post_data.title} {post_data.body}"
+    flag_info = auto_flag_content(combined_text, "post")
+
     # Get author display name for non-anonymous posts
     author_info = {"is_anonymous": post_data.is_anonymous}
     if not post_data.is_anonymous:
@@ -106,6 +111,17 @@ async def create_post(
         raise HTTPException(status_code=400, detail=result.error.message)
 
     post = result.data
+
+    # Auto-flag if content filter detected issues
+    if flag_info:
+        await create_auto_flag_report(
+            target_type="post",
+            target_id=post["id"],
+            author_id=current_user.user_id,
+            flag_info=flag_info,
+            supabase_client=supabase
+        )
+
     post["author"] = author_info
     post["my_vote"] = 0
     post["upvotes"] = 0

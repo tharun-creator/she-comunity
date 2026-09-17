@@ -4,6 +4,7 @@ from app.schemas.vote import VoteRequest, PollVoteRequest, VoteResponse, PollVot
 from app.middleware.auth import get_current_user, CurrentUser
 from app.deps.supabase import get_supabase_client
 from app.middleware.ratelimit import check_write_rate_limit
+from app.services.notify import notify_on_upvote
 
 router = APIRouter()
 
@@ -35,6 +36,10 @@ async def vote_post(
 
     if vote_result.error:
         raise HTTPException(status_code=400, detail=vote_result.error.message)
+
+    # Notify on upvote (only for upvotes, not removals or downvotes)
+    if vote_data.direction == 1:
+        await notify_on_upvote(supabase, "post", str(post_id), current_user.user_id)
 
     # Get updated counts
     upvotes = supabase.from_("votes").select("id", count="exact").eq("target_type", "post").eq("target_id", str(post_id)).eq("direction", 1).execute().count or 0
@@ -71,6 +76,10 @@ async def vote_comment(
 
     if vote_result.error:
         raise HTTPException(status_code=400, detail=vote_result.error.message)
+
+    # Notify on upvote (only for upvotes, not removals or downvotes)
+    if vote_data.direction == 1:
+        await notify_on_upvote(supabase, "comment", str(comment_id), current_user.user_id)
 
     # Get updated counts
     upvotes = supabase.from_("votes").select("id", count="exact").eq("target_type", "comment").eq("target_id", str(comment_id)).eq("direction", 1).execute().count or 0
