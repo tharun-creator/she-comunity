@@ -7,10 +7,11 @@ import { useAuth } from "@/lib/auth/hooks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+import { Suspense } from "react";
 
-export default function VerifyPage() {
+function VerifyContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email") || "";
@@ -111,4 +112,8 @@ export default function VerifyPage() {
       </Card>
     </div>
   );
+}
+
+export default function VerifyPage() {
+  return <Suspense fallback={null}><VerifyContent /></Suspense>;
 }

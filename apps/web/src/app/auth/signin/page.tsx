@@ -9,8 +9,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+import { Suspense } from "react";
 
-export default function SignInPage() {
+function SignInContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextPath = searchParams.get("next") || "/";
@@ -72,4 +73,8 @@ export default function SignInPage() {
       </Card>
     </div>
   );
+}
+
+export default function SignInPage() {
+  return <Suspense fallback={null}><SignInContent /></Suspense>;
 }

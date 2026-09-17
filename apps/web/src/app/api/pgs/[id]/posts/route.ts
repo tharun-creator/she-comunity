@@ -8,7 +8,7 @@ const createPostSchema = z.object({
   body: z.string().min(1).max(10000),
   isAnonymous: z.boolean().default(false),
   residencyClaim: z.enum(["stayed_here", "currently_here"]).optional(),
-  ratingTags: z.record(z.number().min(1).max(5)).optional(),
+  ratingTags: z.record(z.string(), z.number().min(1).max(5)).optional(),
   overallRating: z.number().min(1).max(5).optional(),
   pollOptions: z.array(z.object({ label: z.string().min(1).max(100) })).min(2).max(5).optional(),
   imageUrl: z.string().url().optional(),
@@ -32,11 +32,15 @@ export async function GET(
     .from("posts_public")
     .select("*")
     .eq("pg_id", id)
-    .order(
-      sort === "top" ? "upvotes" : sort === "discussed" ? "comment_count" : "created_at",
-      { ascending: sort === "new" }
-    )
     .limit(limit);
+
+  if (sort === "top") {
+    query = query.order("upvotes", { ascending: false });
+  } else if (sort === "discussed") {
+    query = query.order("comment_count", { ascending: false });
+  } else {
+    query = query.order("created_at", { ascending: false });
+  }
 
   if (cursor) {
     query = query.lt("created_at", cursor);
