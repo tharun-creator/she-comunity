@@ -112,8 +112,7 @@ async def update_report(
             supabase.from_("comments").update({"is_removed": True}).eq("id", report["target_id"]).execute()
     elif action.action == "ban_user":
         update_data = {"status": "actioned", "resolved_by": current_user.user_id}
-        # Ban the reporter or reported user? For now, ban the reported content author
-        # Need to get author_id from target
+        # Ban the reported content author
         if report["target_type"] == "post":
             post_result = supabase.from_("posts").select("author_id").eq("id", report["target_id"]).single()
             if post_result.data:

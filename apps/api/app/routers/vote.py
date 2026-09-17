@@ -25,7 +25,7 @@ async def vote_post(
     if post_result.error or not post_result.data:
         raise HTTPException(status_code=404, detail="Post not found")
 
-    # Upsert vote
+    # Upsert vote (unique constraint on user_id, target_type, target_id)
     vote_result = supabase.from_("votes").upsert({
         "user_id": current_user.user_id,
         "target_type": "post",
@@ -37,15 +37,8 @@ async def vote_post(
         raise HTTPException(status_code=400, detail=vote_result.error.message)
 
     # Get updated counts
-    counts_result = supabase.rpc("get_post_vote_counts", {"p_post_id": str(post_id)}).execute()
-
-    if counts_result.error:
-        # Fallback to manual count
-        upvotes = supabase.from_("votes").select("id", count="exact").eq("target_type", "post").eq("target_id", str(post_id)).eq("direction", 1).execute().count or 0
-        downvotes = supabase.from_("votes").select("id", count="exact").eq("target_type", "post").eq("target_id", str(post_id)).eq("direction", -1).execute().count or 0
-    else:
-        upvotes = counts_result.data.get("upvotes", 0)
-        downvotes = counts_result.data.get("downvotes", 0)
+    upvotes = supabase.from_("votes").select("id", count="exact").eq("target_type", "post").eq("target_id", str(post_id)).eq("direction", 1).execute().count or 0
+    downvotes = supabase.from_("votes").select("id", count="exact").eq("target_type", "post").eq("target_id", str(post_id)).eq("direction", -1).execute().count or 0
 
     my_vote = vote_data.direction if vote_data.direction != 0 else 0
 
@@ -125,14 +118,21 @@ async def vote_poll(
     if not option_found:
         raise HTTPException(status_code=404, detail="Poll option not found")
 
-    # Update post with new poll options
+    # Update post with new poll options and user's vote
     update_result = supabase.from_("posts").update({
         "poll_options": poll_options,
-        "my_poll_vote": vote_data.option_id,
     }).eq("id", str(post_id)).execute()
 
     if update_result.error:
         raise HTTPException(status_code=400, detail=update_result.error.message)
+
+    # Record user's poll vote in votes table
+    supabase.from_("votes").insert({
+        "user_id": current_user.user_id,
+        "target_type": "poll",
+        "target_id": str(post_id),
+        "direction": 1,  # For polls, direction is always 1 (voted)
+    }).execute()
 
     # Build response with is_my_vote flags
     response_options = []

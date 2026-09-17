@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from typing import Optional
 from uuid import UUID
-from app.schemas.post import PostCreate, PostResponse, PostListResponse, PostListParams
+from app.schemas.post import PostCreate, PostResponse, PostListResponse
 from app.middleware.auth import get_current_user, CurrentUser
 from app.deps.supabase import get_supabase_client
 from app.middleware.ratelimit import check_write_rate_limit

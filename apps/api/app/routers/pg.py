@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from typing import Optional
 from uuid import UUID
-from app.schemas.pg import PGCreate, PGResponse, PGListResponse, PGSearchParams
+from app.schemas.pg import PGCreate, PGResponse, PGListResponse
 from app.middleware.auth import get_current_user, CurrentUser
 from app.deps.supabase import get_supabase_client
 from app.middleware.ratelimit import check_write_rate_limit
@@ -53,7 +53,7 @@ async def search_pgs(
 
     query = supabase.from_("pgs").select("*, pg_stats!inner(member_count, review_count, aggregate_rating)")
 
-    # Use Postgres full-text search
+    # Use Postgres full-text search on search_tsv column
     query = query.text_search("search_tsv", q, config="english")
 
     if area and area != "All":
