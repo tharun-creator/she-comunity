@@ -1,36 +1,73 @@
-"""SheStays Community API — skeleton.
+"""SheStays Community API — Production-ready FastAPI backend."""
 
-Not wired to a real database yet: the frontend (apps/web) currently runs entirely
-against an in-memory mock (apps/web/src/lib/mock-data.ts) so the product can be
-demoed and iterated on before Supabase credentials exist. Routers below are stubs
-matching the schema in docs/schema.sql; fill them in once a Supabase project is
-connected (see the repo root README for what's needed).
-"""
-
-from fastapi import FastAPI
+from contextlib import asynccontextmanager
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
-app = FastAPI(title="SheStays Community API")
+from app.core.config import settings
+from app.middleware.errors import register_error_handlers, AppError
+from app.middleware.logging import StructuredLoggingMiddleware
+from app.middleware.ratelimit import RateLimitMiddleware
+from app.routers import pg, post, comment, vote, report, notification, user, health
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    print(f"Starting SheStays API in {settings.app_env} mode")
+    yield
+    # Shutdown
+    print("Shutting down SheStays API")
+
+
+app = FastAPI(
+    title="SheStays Community API",
+    version="1.0.0",
+    docs_url="/docs" if settings.app_env != "production" else None,
+    redoc_url="/redoc" if settings.app_env != "production" else None,
+    lifespan=lifespan,
+)
+
+# CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=settings.cors_origins.split(","),
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# Custom middleware (order matters - outer to inner)
+app.add_middleware(StructuredLoggingMiddleware)
+app.add_middleware(RateLimitMiddleware)
 
-@app.get("/health")
-def health():
-    return {"status": "ok"}
+# Register error handlers
+register_error_handlers(app)
+
+# Include routers
+app.include_router(health.router, prefix="/api/v1", tags=["health"])
+app.include_router(pg.router, prefix="/api/v1", tags=["pgs"])
+app.include_router(post.router, prefix="/api/v1", tags=["posts"])
+app.include_router(comment.router, prefix="/api/v1", tags=["comments"])
+app.include_router(vote.router, prefix="/api/v1", tags=["votes"])
+app.include_router(report.router, prefix="/api/v1", tags=["reports"])
+app.include_router(notification.router, prefix="/api/v1", tags=["notifications"])
+app.include_router(user.router, prefix="/api/v1", tags=["users"])
 
 
-# TODO once Supabase is connected:
-# - GET  /pgs, /pgs/search, POST /pgs
-# - GET  /pgs/{id}/posts, POST /pgs/{id}/posts
-# - GET  /posts/{id}/comments, POST /posts/{id}/comments
-# - POST /posts/{id}/vote, POST /comments/{id}/vote
-# - POST /reports
-# - GET  /notifications
-# Every write endpoint must enforce the rate limits from PRD.md §5.5 server-side —
-# do not trust the client to have checked them first.
+@app.exception_handler(AppError)
+async def global_app_error_handler(request: Request, exc: AppError):
+    """Global handler for AppError exceptions."""
+    from app.middleware.errors import create_error_response
+    return create_error_response(request, exc.error_code, exc.message, exc.status_code, exc.details)
+
+
+@app.get("/")
+async def root():
+    return {
+        "name": "SheStays Community API",
+        "version": "1.0.0",
+        "docs": "/docs",
+        "health": "/api/v1/health"
+    }

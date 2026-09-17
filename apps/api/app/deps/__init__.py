@@ -1,0 +1,1 @@
+from app.deps.supabase import get_supabase_client, get_supabase_anon_client
