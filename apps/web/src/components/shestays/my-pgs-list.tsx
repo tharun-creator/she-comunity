@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Home } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { fetchJoinedPgs } from "@/lib/mock-data";
+import { fetchJoinedPgs } from "@/lib/api/adapters";
 import { cn } from "@/lib/utils";
 
 const AVATAR_TINTS = [

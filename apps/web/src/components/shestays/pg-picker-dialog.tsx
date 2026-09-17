@@ -12,7 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { fetchJoinedPgs, fetchDiscoverFeed } from "@/lib/mock-data";
+import { fetchJoinedPgs, fetchDiscoverFeed } from "@/lib/api/adapters";
 import type { Pg } from "@/types/domain";
 
 export function PgPickerDialog({

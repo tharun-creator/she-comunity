@@ -5,7 +5,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PgListRow } from "./pg-list-row";
-import { fetchSuggestedPgs, fetchProfile, joinPg } from "@/lib/mock-data";
+import { fetchSuggestedPgs, fetchProfile, joinPg } from "@/lib/api/adapters";
 
 export function SuggestedPgsPanel() {
   const queryClient = useQueryClient();

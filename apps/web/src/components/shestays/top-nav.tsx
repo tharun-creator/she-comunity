@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Search, Bell, ChevronDown } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { fetchNotifications, fetchProfile } from "@/lib/mock-data";
+import { fetchNotifications, fetchProfile } from "@/lib/api/adapters";
 import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [

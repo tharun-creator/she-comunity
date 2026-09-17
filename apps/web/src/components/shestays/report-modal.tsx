@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { reportContent } from "@/lib/mock-data";
+import { reportContent } from "@/lib/api/adapters";
 import type { ReportReason } from "@/types/domain";
 import { cn } from "@/lib/utils";
 

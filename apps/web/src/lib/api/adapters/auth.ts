@@ -15,9 +15,7 @@ export async function fetchProfile(): Promise<UserProfile | null> {
   }
 
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return null;
-    return apiClient.get<UserProfile>(`/profile/${user.id}`);
+    return apiClient.get<UserProfile>("/users/me");
   } catch {
     return null;
   }
@@ -30,9 +28,20 @@ export async function refreshProfile(): Promise<UserProfile | null> {
   }
 
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return null;
-    return apiClient.get<UserProfile>(`/profile/${user.id}`);
+    return apiClient.get<UserProfile>("/users/me");
+  } catch {
+    return null;
+  }
+}
+
+export async function attestWoman(): Promise<UserProfile | null> {
+  if (!config.useLiveApi) {
+    const { fetchProfile: mockFetchProfile } = await import("@/lib/mock-data");
+    return mockFetchProfile();
+  }
+
+  try {
+    return apiClient.patch<UserProfile>("/users/me/attest", { attested: true });
   } catch {
     return null;
   }

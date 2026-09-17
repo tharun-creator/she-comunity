@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { fetchJoinedPgs } from "@/lib/mock-data";
+import { fetchJoinedPgs } from "@/lib/api/adapters";
 
 const TINTS = ["bg-primary-soft text-primary-hover", "bg-secondary text-secondary-foreground", "bg-warning/15 text-warning", "bg-success/15 text-success"];
 

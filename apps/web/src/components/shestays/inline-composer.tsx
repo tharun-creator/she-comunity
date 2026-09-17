@@ -6,7 +6,7 @@ import { ImageIcon, Link2, BarChart3 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { PgPickerDialog } from "./pg-picker-dialog";
-import { fetchProfile } from "@/lib/mock-data";
+import { fetchProfile } from "@/lib/api/adapters";
 
 export function InlineComposer() {
   const { data: profile } = useQuery({ queryKey: ["profile"], queryFn: fetchProfile });

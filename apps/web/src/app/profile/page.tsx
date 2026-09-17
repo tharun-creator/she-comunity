@@ -6,7 +6,7 @@ import { AppShell } from "@/components/shestays/app-shell";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PgCard } from "@/components/shestays/pg-card";
-import { fetchProfile, fetchPgsByIds } from "@/lib/mock-data";
+import { fetchProfile, fetchPgsByIds } from "@/lib/api/adapters";
 
 export default function ProfilePage() {
   const { data: profile, isLoading } = useQuery({ queryKey: ["profile"], queryFn: fetchProfile });

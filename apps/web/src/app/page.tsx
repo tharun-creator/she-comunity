@@ -9,7 +9,7 @@ import { FeedPostCard } from "@/components/shestays/feed-post-card";
 import { FilterPillBar } from "@/components/shestays/filter-pill-bar";
 import { TrendingDiscussionsPanel } from "@/components/shestays/trending-discussions-panel";
 import { Skeleton } from "@/components/ui/skeleton";
-import { fetchHomeFeed } from "@/lib/mock-data";
+import { fetchHomeFeed } from "@/lib/api/adapters";
 import { type ChennaiArea, type PostType } from "@/types/domain";
 
 const POST_TYPE_OPTIONS = ["All", "Reviews", "Discussions", "Polls"] as const;

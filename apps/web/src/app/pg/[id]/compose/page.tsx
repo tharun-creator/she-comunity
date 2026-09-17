@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { createPost, fetchPg, fetchProfile } from "@/lib/mock-data";
+import { createPost, fetchPg, fetchProfile } from "@/lib/api/adapters";
 import { RATING_TAGS, type PostType, type RatingTag } from "@/types/domain";
 import { cn } from "@/lib/utils";
 

@@ -6,7 +6,7 @@ import { MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PgListRow } from "./pg-list-row";
-import { fetchNearbyPgs, fetchProfile, joinPg } from "@/lib/mock-data";
+import { fetchNearbyPgs, fetchProfile, joinPg } from "@/lib/api/adapters";
 
 export function NearbyPgsPanel() {
   const queryClient = useQueryClient();
