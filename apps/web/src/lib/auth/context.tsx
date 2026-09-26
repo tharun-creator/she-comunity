@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 import { User } from "@supabase/supabase-js";
 import type { UserProfile } from "@/types/domain";
@@ -27,7 +27,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = useCallback(async (userId: string) => {
     try {
       const res = await fetch(`/api/profile/${userId}`);
       if (res.ok) {
@@ -37,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       setProfile(null);
     }
-  };
+  }, []);
 
   useEffect(() => {
     const initAuth = async () => {
@@ -62,7 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     return () => subscription.unsubscribe();
-  }, [fetchProfile]);
+  }, [fetchProfile, supabase.auth]);
 
   const signIn = async (email: string) => {
     const { error } = await supabase.auth.signInWithOtp({

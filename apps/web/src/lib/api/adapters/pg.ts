@@ -1,12 +1,13 @@
 import { config } from "@/lib/config";
 import { apiClient } from "../client";
 import type { Pg } from "@/types/domain";
-import type { PgListResponse } from "@/types/api";
+import type { Post } from "@/types/domain";
+import type { ChennaiArea } from "@/types/domain";
 
 export async function fetchDiscoverFeed(area?: string): Promise<Pg[]> {
   if (!config.useLiveApi) {
     const { fetchDiscoverFeed: mockFetch } = await import("@/lib/mock-data");
-    return mockFetch(area as any);
+    return mockFetch(area as ChennaiArea | "All" | undefined);
   }
 
   try {
@@ -63,14 +64,14 @@ export async function fetchPgsByIds(ids: string[]): Promise<Pg[]> {
   }
 }
 
-export async function fetchPostsForPg(pgId: string, sort: "new" | "top" | "discussed" = "new"): Promise<any[]> {
+export async function fetchPostsForPg(pgId: string, sort: "new" | "top" | "discussed" = "new"): Promise<Post[]> {
   if (!config.useLiveApi) {
     const { fetchPostsForPg: mockFetch } = await import("@/lib/mock-data");
     return mockFetch(pgId, sort);
   }
 
   try {
-    return apiClient.get<any[]>(`/pgs/${pgId}/posts?sort=${sort}`);
+    return apiClient.get<Post[]>(`/pgs/${pgId}/posts?sort=${sort}`);
   } catch {
     return [];
   }
@@ -123,57 +124,55 @@ export async function fetchJoinedPgs(): Promise<Pg[]> {
   }
 }
 
-export async function joinPg(pgId: string): Promise<any> {
+export async function joinPg(pgId: string): Promise<{ pg_id: string; pg_name: string; area: string; joined_at: string } | null> {
   if (!config.useLiveApi) {
     const { joinPg: mockFetch } = await import("@/lib/mock-data");
-    return mockFetch(pgId);
+    return mockFetch(pgId) as unknown as Promise<{ pg_id: string; pg_name: string; area: string; joined_at: string } | null>;
   }
 
   try {
-    return apiClient.post<any>(`/pgs/${pgId}/join`);
+    return apiClient.post<{ pg_id: string; pg_name: string; area: string; joined_at: string }>(`/pgs/${pgId}/join`);
   } catch {
     return null;
   }
 }
 
-export async function fetchTrendingDiscussions(): Promise<any[]> {
+export async function fetchTrendingDiscussions(): Promise<Post[]> {
   if (!config.useLiveApi) {
     const { fetchTrendingDiscussions: mockFetch } = await import("@/lib/mock-data");
-    return mockFetch();
+    return mockFetch() as unknown as Promise<Post[]>;
   }
 
   try {
-    return apiClient.get<any[]>("/posts/trending");
+    return apiClient.get<Post[]>("/posts/trending");
   } catch {
     return [];
   }
 }
 
-export async function fetchHomeFeed(area?: string): Promise<any[]> {
+export async function fetchHomeFeed(area?: string): Promise<Post[]> {
   if (!config.useLiveApi) {
     const { fetchHomeFeed: mockFetch } = await import("@/lib/mock-data");
-    return mockFetch(area as any);
+    return mockFetch(area as ChennaiArea | "All" | undefined);
   }
 
   try {
     const params = new URLSearchParams();
     if (area && area !== "All") params.set("area", area);
-    return apiClient.get<any[]>(`/posts/home-feed?${params.toString()}`);
+    return apiClient.get<Post[]>(`/posts/home-feed?${params.toString()}`);
   } catch {
     return [];
   }
 }
 
-import type { ChennaiArea } from "@/types/domain";
-
-export async function createPg(input: { name: string; area: ChennaiArea; address?: string }): Promise<any> {
+export async function createPg(input: { name: string; area: ChennaiArea; address?: string }): Promise<Pg | null> {
   if (!config.useLiveApi) {
     const { createPg: mockCreate } = await import("@/lib/mock-data");
     return mockCreate(input);
   }
 
   try {
-    return apiClient.post<any>("/pgs", input);
+    return apiClient.post<Pg>("/pgs", input);
   } catch {
     return null;
   }

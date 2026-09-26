@@ -83,10 +83,6 @@ export async function POST(
     const body = await request.json();
     const validated = createPostSchema.parse(body);
 
-    const author = validated.isAnonymous
-      ? { is_anonymous: true, anonymous_tag: "Anonymous Resident" }
-      : { is_anonymous: false, display_name: (await supabase.from("users").select("display_name").eq("auth_user_id", user.id).single()).data?.display_name };
-
     const { data: post, error } = await supabase
       .from("posts")
       .insert({

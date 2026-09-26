@@ -2,11 +2,10 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Filter, X, ChevronDown, MoreHorizontal, Shield, Eye, Trash2, UserX, Mail } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Filter, X, Shield, Trash2, UserX, Mail } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,12 +19,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 type ReportStatus = "pending" | "actioned" | "dismissed";
 type ReportReason = "harassment" | "fake_review" | "doxxing" | "spam" | "other";
@@ -47,7 +40,6 @@ interface Report {
 
 export default function AdminReportsPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [statusFilter, setStatusFilter] = useState<ReportStatus | "all">("pending");
   const [reasonFilter, setReasonFilter] = useState<ReportReason | "all">("all");
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
@@ -65,14 +57,6 @@ export default function AdminReportsPage() {
     } catch (error) {
       alert("Action failed: " + error);
     }
-  };
-
-  const reasonLabels: Record<ReportReason, string> = {
-    harassment: "Harassment or threats",
-    fake_review: "Fake or misleading review",
-    doxxing: "Doxxing (names a private individual)",
-    spam: "Spam",
-    other: "Other",
   };
 
   return (
@@ -221,7 +205,7 @@ function ReportDetailModal({
 
           {report.detail && (
             <div className="rounded-lg bg-secondary/50 p-4">
-              <p className="text-sm font-medium mb-1">Reporter's Detail</p>
+              <p className="text-sm font-medium mb-1">Reporter&apos;s Detail</p>
               <p className="text-sm text-body">{report.detail}</p>
             </div>
           )}

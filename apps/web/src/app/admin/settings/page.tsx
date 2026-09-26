@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Save, Shield, Bell, Globe, Palette, Key, Trash2 } from "lucide-react";
+import { Save, Shield, Bell, Globe, Key } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,6 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
 
 interface Settings {
   site_name: string;
@@ -44,7 +43,7 @@ export default function AdminSettingsPage() {
     try {
       await apiClient.patch("/admin/settings", formData);
       toast.success("Settings saved");
-    } catch (error) {
+    } catch {
       toast.error("Failed to save settings");
     } finally {
       setSaving(false);

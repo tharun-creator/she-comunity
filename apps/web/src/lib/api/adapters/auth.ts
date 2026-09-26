@@ -1,12 +1,6 @@
 import { config } from "@/lib/config";
-import { createBrowserClient } from "@supabase/ssr";
 import { apiClient } from "../client";
 import type { UserProfile } from "@/types/domain";
-
-const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 export async function fetchProfile(): Promise<UserProfile | null> {
   if (!config.useLiveApi) {

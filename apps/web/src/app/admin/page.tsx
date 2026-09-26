@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Users, Flag, Clock, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import { Users, Flag, Clock, CheckCircle, AlertCircle } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -26,12 +26,16 @@ export default function AdminDashboard() {
 
   const { data: recentReports } = useQuery({
     queryKey: ["admin", "recent-reports"],
-    queryFn: () => apiClient.get<any[]>("/admin/reports?limit=10&status=pending"),
+    queryFn: () => apiClient.get<unknown[]>("/admin/reports?limit=10&status=pending"),
   });
 
-  {!stats && !recentReports ? (
-    <div className="animate-pulse space-y-6"><Card className="h-32" /><Card className="h-32" /></div>
-  ) : (
+  if (!stats && !recentReports) {
+    return (
+      <div className="animate-pulse space-y-6"><Card className="h-32" /><Card className="h-32" /></div>
+    );
+  }
+
+  return (
     <div className="space-y-6">
       <header>
         <h1 className="font-heading text-2xl font-bold text-heading">Admin Dashboard</h1>
@@ -94,7 +98,7 @@ export default function AdminDashboard() {
         </Card>
       </div>
     </div>
-  )}
+  )
 }
 
 function StatCard({ title, value, icon: Icon, variant }: { title: string; value: number; icon: React.ComponentType<{ className?: string }>; variant?: "default" | "warning" }) {

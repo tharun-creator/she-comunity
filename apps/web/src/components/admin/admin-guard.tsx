@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/hooks";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api/client";
@@ -14,7 +14,6 @@ interface AdminGuardProps {
 
 export function AdminGuard({ children, fallback = null }: AdminGuardProps) {
   const router = useRouter();
-  const pathname = usePathname();
   const { user, loading: authLoading } = useAuth();
   
   const { data: isStaff, isLoading: staffLoading } = useQuery({

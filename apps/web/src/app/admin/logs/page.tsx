@@ -2,22 +2,13 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Filter, Search, ChevronDown, Clock, Shield, User, Trash2, Eye, MoreHorizontal } from "lucide-react";
-import { apiClient } from "@/lib/api/client";
-import { Button } from "@/components/ui/button";
+import { Search, Clock } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { relativeTime } from "@/lib/format";
-import { cn } from "@/lib/utils";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { apiClient } from "@/lib/api/client";
 
 interface ModLog {
   id: string;

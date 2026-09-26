@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Ban, UserCheck, MoreHorizontal, Shield, UserX, Mail, Trash2 } from "lucide-react";
+import { Search, UserCheck, Shield, UserX, Mail, Trash2 } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -237,8 +237,4 @@ function UserActionModal({
       </DialogContent>
     </Dialog>
   );
-}
-
-function handleAction(userId: string, action: "ban" | "unban" | "verify" | "delete") {
-  // This will be replaced by the actual handler
 }
