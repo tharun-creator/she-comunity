@@ -12,7 +12,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { PgPickerDialog } from "./pg-picker-dialog";
-import { fetchProfile } from "@/lib/mock-data";
+import { fetchProfile } from "@/lib/api/adapters";
 import { cn } from "@/lib/utils";
 
 export function QuickPostCard() {

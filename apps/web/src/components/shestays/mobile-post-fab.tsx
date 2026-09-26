@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { VenetianMask, Plus } from "lucide-react";
 import { PgPickerDialog } from "./pg-picker-dialog";
-import { fetchProfile } from "@/lib/mock-data";
+import { fetchProfile } from "@/lib/api/adapters";
 
 export function MobilePostFab() {
   const { data: profile } = useQuery({ queryKey: ["profile"], queryFn: fetchProfile });

@@ -10,7 +10,7 @@ import { RatingTagChip } from "@/components/shestays/rating-tag-chip";
 import { FilterPillBar } from "@/components/shestays/filter-pill-bar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { fetchPg, fetchPostsForPg } from "@/lib/mock-data";
+import { fetchPg, fetchPostsForPg } from "@/lib/api/adapters";
 import type { RatingTag } from "@/types/domain";
 
 const SORTS = ["New", "Top", "Most discussed"] as const;

@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { MessageSquare, ArrowUpCircle, AtSign, ShieldCheck } from "lucide-react";
 import { AppShell } from "@/components/shestays/app-shell";
 import { Skeleton } from "@/components/ui/skeleton";
-import { fetchNotifications } from "@/lib/mock-data";
+import { fetchNotifications } from "@/lib/api/adapters";
 import { relativeTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { AppNotification } from "@/types/domain";

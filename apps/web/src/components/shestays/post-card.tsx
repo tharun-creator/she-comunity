@@ -16,7 +16,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { AuthorLine } from "./anonymous-tag";
 import { RatingTagChip } from "./rating-tag-chip";
 import { ReportModal } from "./report-modal";
-import { votePost, votePollOption, toggleSavePost } from "@/lib/mock-data";
+import { votePost, votePollOption, toggleSavePost } from "@/lib/api/adapters";
 import type { Post, RatingTag } from "@/types/domain";
 import { cn } from "@/lib/utils";
 import { relativeTime } from "@/lib/format";

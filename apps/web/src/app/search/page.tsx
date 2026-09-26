@@ -19,7 +19,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { searchPgs, createPg } from "@/lib/mock-data";
+import { searchPgs, createPg } from "@/lib/api/adapters";
 import { CHENNAI_AREAS, type ChennaiArea } from "@/types/domain";
 
 export default function SearchPage() {

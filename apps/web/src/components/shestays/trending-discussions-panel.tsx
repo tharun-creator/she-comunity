@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { Flame } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { fetchTrendingDiscussions } from "@/lib/mock-data";
+import { fetchTrendingDiscussions } from "@/lib/api/adapters";
 import { relativeTime } from "@/lib/format";
 
 export function TrendingDiscussionsPanel() {

@@ -8,7 +8,7 @@ import { AppShell } from "@/components/shestays/app-shell";
 import { PostCard } from "@/components/shestays/post-card";
 import { CommentThread } from "@/components/shestays/comment-thread";
 import { Skeleton } from "@/components/ui/skeleton";
-import { fetchPost } from "@/lib/mock-data";
+import { fetchPost } from "@/lib/api/adapters";
 
 export default function PostDetailPage({
   params,

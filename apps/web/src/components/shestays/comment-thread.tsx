@@ -9,7 +9,7 @@ import { AnonymousToggle } from "./anonymous-toggle";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
-import { fetchCommentsForPost, createComment, fetchProfile } from "@/lib/mock-data";
+import { fetchCommentsForPost, createComment, fetchProfile } from "@/lib/api/adapters";
 import type { Comment } from "@/types/domain";
 import { relativeTime } from "@/lib/format";
 
