@@ -1,5 +1,6 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { cn } from "./utils";
+import { relativeTime } from "./format";
 
 describe("cn utility", () => {
   it("joins class names", () => {
@@ -18,7 +19,6 @@ describe("cn utility", () => {
 
 describe("format utilities", () => {
   it("exports relativeTime", () => {
-    const { relativeTime } = require("./format");
     expect(typeof relativeTime).toBe("function");
   });
 });
