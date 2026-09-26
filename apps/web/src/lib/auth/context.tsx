@@ -27,6 +27,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 
+  const fetchProfile = async (userId: string) => {
+    try {
+      const res = await fetch(`/api/profile/${userId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setProfile(data);
+      }
+    } catch {
+      setProfile(null);
+    }
+  };
+
   useEffect(() => {
     const initAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -50,19 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
-
-  const fetchProfile = async (userId: string) => {
-    try {
-      const res = await fetch(`/api/profile/${userId}`);
-      if (res.ok) {
-        const data = await res.json();
-        setProfile(data);
-      }
-    } catch {
-      setProfile(null);
-    }
-  };
+  }, [fetchProfile]);
 
   const signIn = async (email: string) => {
     const { error } = await supabase.auth.signInWithOtp({

@@ -15,6 +15,7 @@ const ADMIN_NAV = [
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
   return (
     <AdminGuard fallback={<div className="flex min-h-screen items-center justify-center">Access denied</div>}>
       <div className="flex min-h-screen">
@@ -24,7 +25,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
           <nav className="flex-1 p-4 space-y-1">
             {ADMIN_NAV.map((item) => {
-              const isActive = usePathname() === item.href;
+              const isActive = pathname === item.href;
               return (
                 <Link
                   key={item.href}

@@ -4,6 +4,7 @@ from uuid import UUID
 from app.schemas.notification import NotificationResponse, NotificationListResponse, NotificationMarkRead
 from app.middleware.auth import get_current_user, CurrentUser
 from app.deps.supabase import get_supabase_client
+from app.schemas.common import build_cursor_response
 
 router = APIRouter()
 
@@ -31,7 +32,8 @@ async def list_notifications(
     if result.error:
         raise HTTPException(status_code=400, detail=result.error.message)
 
-    return NotificationListResponse(data=result.data, next_cursor=None, has_more=len(result.data) == limit)
+    next_cursor, has_more = build_cursor_response(result.data, limit, "created_at")
+    return NotificationListResponse(data=result.data, next_cursor=next_cursor, has_more=has_more)
 
 
 @router.patch("/notifications/{notification_id}/read", response_model=NotificationResponse)

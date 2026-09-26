@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from typing import Optional
 from uuid import UUID
-from app.schemas.common import CursorPage
+from app.schemas.common import CursorPage, build_cursor_response
 from app.middleware.auth import get_current_user, CurrentUser
 from app.deps.supabase import get_supabase_client
 from app.schemas.report import ReportReason
@@ -107,7 +107,8 @@ async def list_reports(
             "pg_name": pg_name,
         })
 
-    return enriched
+    next_cursor, has_more = build_cursor_response(enriched, limit, "created_at")
+    return {"data": enriched, "next_cursor": next_cursor, "has_more": has_more}
 
 
 @router.patch("/admin/reports/{report_id}")
@@ -172,6 +173,7 @@ async def list_users(
     search: Optional[str] = Query(None),
     status: Optional[str] = Query(None),
     limit: int = Query(50, ge=1, le=200),
+    cursor: Optional[str] = Query(None),
     current_user: CurrentUser = Depends(require_admin)
 ):
     """List users with filters."""
@@ -185,12 +187,15 @@ async def list_users(
         query = query.is_("banned_at", "null")
     elif status == "banned":
         query = query.not_.is_("banned_at", "null")
+    if cursor:
+        query = query.lt("created_at", cursor)
 
     result = query.execute()
     if result.error:
         raise HTTPException(status_code=400, detail=result.error.message)
 
-    return result.data
+    next_cursor, has_more = build_cursor_response(result.data, limit, "created_at")
+    return {"data": result.data, "next_cursor": next_cursor, "has_more": has_more}
 
 
 @router.post("/admin/users/{user_id}/action")
@@ -234,6 +239,7 @@ async def list_logs(
     moderator: Optional[str] = Query(None),
     search: Optional[str] = Query(None),
     limit: int = Query(100, ge=1, le=500),
+    cursor: Optional[str] = Query(None),
     current_user: CurrentUser = Depends(require_admin)
 ):
     """List moderation logs."""
@@ -247,6 +253,8 @@ async def list_logs(
         query = query.eq("moderator_id", moderator)
     if search:
         query = query.or_(f"target_preview.ilike.%{search}%,moderator.display_name.ilike.%{search}%")
+    if cursor:
+        query = query.lt("created_at", cursor)
 
     result = query.execute()
     if result.error:
@@ -259,7 +267,8 @@ async def list_logs(
         else:
             log["moderator_name"] = "Unknown"
 
-    return result.data
+    next_cursor, has_more = build_cursor_response(result.data, limit, "created_at")
+    return {"data": result.data, "next_cursor": next_cursor, "has_more": has_more}
 
 
 @router.get("/admin/settings")

@@ -5,6 +5,7 @@ from app.schemas.pg import PGCreate, PGResponse, PGListResponse
 from app.middleware.auth import get_current_user, CurrentUser
 from app.deps.supabase import get_supabase_client
 from app.middleware.ratelimit import check_write_rate_limit
+from app.schemas.common import build_cursor_response
 
 router = APIRouter()
 
@@ -38,7 +39,8 @@ async def list_pgs(
     if result.error:
         raise HTTPException(status_code=400, detail=result.error.message)
 
-    return PGListResponse(data=result.data, next_cursor=None, has_more=len(result.data) == limit)
+    next_cursor, has_more = build_cursor_response(result.data, limit, "created_at")
+    return PGListResponse(data=result.data, next_cursor=next_cursor, has_more=has_more)
 
 
 @router.get("/pgs/search", response_model=PGListResponse)
@@ -46,6 +48,7 @@ async def search_pgs(
     q: str = Query(..., min_length=1),
     area: Optional[str] = Query(None),
     limit: int = Query(20, ge=1, le=100),
+    cursor: Optional[str] = Query(None),
     current_user: CurrentUser = Depends(get_current_user)
 ):
     """Search PGs using full-text search (Postgres FTS)."""
@@ -61,12 +64,16 @@ async def search_pgs(
 
     query = query.order("created_at", ascending=False).limit(limit)
 
+    if cursor:
+        query = query.lt("created_at", cursor)
+
     result = query.execute()
 
     if result.error:
         raise HTTPException(status_code=400, detail=result.error.message)
 
-    return PGListResponse(data=result.data, next_cursor=None, has_more=len(result.data) == limit)
+    next_cursor, has_more = build_cursor_response(result.data, limit, "created_at")
+    return PGListResponse(data=result.data, next_cursor=next_cursor, has_more=has_more)
 
 
 @router.get("/pgs/{pg_id}", response_model=PGResponse)

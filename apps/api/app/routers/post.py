@@ -6,6 +6,7 @@ from app.middleware.auth import get_current_user, CurrentUser
 from app.deps.supabase import get_supabase_client
 from app.middleware.ratelimit import check_write_rate_limit
 from app.services.content_filter import auto_flag_content, create_auto_flag_report
+from app.schemas.common import build_cursor_response
 
 router = APIRouter()
 
@@ -38,20 +39,29 @@ async def list_posts(
 
     if sort == "top":
         query = query.order("upvotes", ascending=False)
+        cursor_field = "upvotes"
     elif sort == "discussed":
         query = query.order("comment_count", ascending=False)
+        cursor_field = "comment_count"
     else:
         query = query.order("created_at", ascending=False)
+        cursor_field = "created_at"
 
     if cursor:
-        query = query.lt("created_at", cursor)
+        if cursor_field == "upvotes":
+            query = query.lt("upvotes", cursor)
+        elif cursor_field == "comment_count":
+            query = query.lt("comment_count", cursor)
+        else:
+            query = query.lt("created_at", cursor)
 
     result = query.execute()
 
     if result.error:
         raise HTTPException(status_code=400, detail=result.error.message)
 
-    return PostListResponse(data=result.data, next_cursor=None, has_more=len(result.data) == limit)
+    next_cursor, has_more = build_cursor_response(result.data, limit, cursor_field)
+    return PostListResponse(data=result.data, next_cursor=next_cursor, has_more=has_more)
 
 
 @router.post("/pgs/{pg_id}/posts", response_model=PostResponse, status_code=status.HTTP_201_CREATED)

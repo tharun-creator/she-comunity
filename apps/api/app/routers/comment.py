@@ -7,6 +7,7 @@ from app.deps.supabase import get_supabase_client
 from app.middleware.ratelimit import check_write_rate_limit
 from app.services.content_filter import auto_flag_content, create_auto_flag_report
 from app.services.notify import notify_on_reply
+from app.schemas.common import build_cursor_response
 
 router = APIRouter()
 
@@ -58,7 +59,8 @@ async def list_comments(
         replies_result = supabase.from_("comments_public").select("*").eq("parent_comment_id", comment["id"]).order("created_at", ascending=True).execute()
         comment["replies"] = replies_result.data or []
 
-    return CommentListResponse(data=comments, next_cursor=None, has_more=len(comments) == limit)
+    next_cursor, has_more = build_cursor_response(comments, limit, "created_at")
+    return CommentListResponse(data=comments, next_cursor=next_cursor, has_more=has_more)
 
 
 @router.post("/posts/{post_id}/comments", response_model=CommentResponse, status_code=status.HTTP_201_CREATED)

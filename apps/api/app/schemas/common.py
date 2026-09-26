@@ -17,6 +17,15 @@ class CursorPage(BaseModel, Generic[T]):
     has_more: bool = False
 
 
+def build_cursor_response(data: list[dict], limit: int, cursor_field: str = "created_at") -> tuple[Optional[str], bool]:
+    """Build next_cursor and has_more from paginated data."""
+    if not data or len(data) < limit:
+        return None, False
+    last_item = data[-1]
+    cursor_value = last_item.get(cursor_field)
+    return cursor_value, True
+
+
 class ErrorDetail(BaseModel):
     code: str
     message: str

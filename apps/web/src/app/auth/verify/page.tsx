@@ -16,7 +16,7 @@ function VerifyContent() {
   const searchParams = useSearchParams();
   const email = searchParams.get("email") || "";
   const nextPath = searchParams.get("next") || "/";
-  const { verifyOtp, refreshProfile } = useAuth();
+  const { verifyOtp, refreshProfile, signIn } = useAuth();
   const [token, setToken] = useState("");
   const [loading, setLoading] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
@@ -53,7 +53,6 @@ function VerifyContent() {
   };
 
   const handleResend = async () => {
-    const { signIn } = useAuth();
     setResendCooldown(60);
     const { error } = await signIn(email);
     if (error) toast.error(error.message);

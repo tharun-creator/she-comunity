@@ -5,6 +5,7 @@ from app.schemas.report import ReportCreate, ReportResponse, ReportListResponse,
 from app.middleware.auth import get_current_user, CurrentUser
 from app.deps.supabase import get_supabase_client
 from app.services.notify import notify_on_report_resolved
+from app.schemas.common import build_cursor_response
 
 router = APIRouter()
 
@@ -77,7 +78,8 @@ async def list_reports(
     if result.error:
         raise HTTPException(status_code=400, detail=result.error.message)
 
-    return ReportListResponse(data=result.data, next_cursor=None, has_more=len(result.data) == limit)
+    next_cursor, has_more = build_cursor_response(result.data, limit, "created_at")
+    return ReportListResponse(data=result.data, next_cursor=next_cursor, has_more=has_more)
 
 
 @router.patch("/reports/{report_id}", response_model=ReportResponse)

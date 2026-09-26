@@ -9,6 +9,8 @@ from app.core.config import settings
 from app.middleware.errors import register_error_handlers, AppError
 from app.middleware.logging import StructuredLoggingMiddleware
 from app.middleware.ratelimit import RateLimitMiddleware
+from app.middleware.security_headers import SecurityHeadersMiddleware
+from app.middleware.sentry import init_sentry
 from app.routers import pg, post, comment, vote, report, notification, user, health, admin
 
 
@@ -16,6 +18,7 @@ from app.routers import pg, post, comment, vote, report, notification, user, hea
 async def lifespan(app: FastAPI):
     # Startup
     print(f"Starting SheStays API in {settings.app_env} mode")
+    init_sentry()
     yield
     # Shutdown
     print("Shutting down SheStays API")
@@ -39,6 +42,7 @@ app.add_middleware(
 )
 
 # Custom middleware (order matters - outer to inner)
+app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(StructuredLoggingMiddleware)
 app.add_middleware(RateLimitMiddleware)
 
