@@ -10,6 +10,27 @@ from app.schemas.common import build_cursor_response
 router = APIRouter()
 
 
+def format_pg_dict(pg_dict: dict) -> dict:
+    """Flatten pg_stats and calculate is_publicly_visible."""
+    pg_data = dict(pg_dict)
+    stats = pg_data.pop("pg_stats", None)
+    if isinstance(stats, list) and stats:
+        stats = stats[0]
+    elif not isinstance(stats, dict):
+        stats = {}
+
+    member_count = stats.get("member_count", pg_data.get("member_count", 0))
+    review_count = stats.get("review_count", pg_data.get("review_count", 0))
+    aggregate_rating = stats.get("aggregate_rating", pg_data.get("aggregate_rating", None))
+
+    pg_data["member_count"] = member_count
+    pg_data["review_count"] = review_count
+    pg_data["aggregate_rating"] = aggregate_rating
+    pg_data["tag_averages"] = stats.get("tag_averages", pg_data.get("tag_averages", {}))
+    pg_data["is_publicly_visible"] = (member_count >= 3) or (review_count >= 5)
+    return pg_data
+
+
 @router.get("/pgs", response_model=PGListResponse)
 async def list_pgs(
     search: Optional[str] = Query(None),
@@ -21,7 +42,7 @@ async def list_pgs(
     """List PGs with visibility filter, search, and cursor pagination."""
     supabase = get_supabase_client()
 
-    query = supabase.from_("pgs").select("*, pg_stats!inner(member_count, review_count, aggregate_rating)")
+    query = supabase.from_("pgs").select("*, pg_stats(member_count, review_count, aggregate_rating)")
 
     if search:
         query = query.or_(f"name.ilike.%{search}%,area.ilike.%{search}%")
@@ -39,8 +60,9 @@ async def list_pgs(
     if result.error:
         raise HTTPException(status_code=400, detail=result.error.message)
 
-    next_cursor, has_more = build_cursor_response(result.data, limit, "created_at")
-    return PGListResponse(data=result.data, next_cursor=next_cursor, has_more=has_more)
+    formatted_data = [format_pg_dict(p) for p in (result.data or [])]
+    next_cursor, has_more = build_cursor_response(formatted_data, limit, "created_at")
+    return PGListResponse(data=formatted_data, next_cursor=next_cursor, has_more=has_more)
 
 
 @router.get("/pgs/search", response_model=PGListResponse)
@@ -54,7 +76,7 @@ async def search_pgs(
     """Search PGs using full-text search (Postgres FTS)."""
     supabase = get_supabase_client()
 
-    query = supabase.from_("pgs").select("*, pg_stats!inner(member_count, review_count, aggregate_rating)")
+    query = supabase.from_("pgs").select("*, pg_stats(member_count, review_count, aggregate_rating)")
 
     # Use Postgres full-text search on search_tsv column
     query = query.text_search("search_tsv", q, config="english")
@@ -72,8 +94,9 @@ async def search_pgs(
     if result.error:
         raise HTTPException(status_code=400, detail=result.error.message)
 
-    next_cursor, has_more = build_cursor_response(result.data, limit, "created_at")
-    return PGListResponse(data=result.data, next_cursor=next_cursor, has_more=has_more)
+    formatted_data = [format_pg_dict(p) for p in (result.data or [])]
+    next_cursor, has_more = build_cursor_response(formatted_data, limit, "created_at")
+    return PGListResponse(data=formatted_data, next_cursor=next_cursor, has_more=has_more)
 
 
 @router.get("/pgs/{pg_id}", response_model=PGResponse)
@@ -84,17 +107,17 @@ async def get_pg(
     """Get PG by ID with visibility check."""
     supabase = get_supabase_client()
 
-    result = supabase.from_("pgs").select("*, pg_stats!inner(member_count, review_count, aggregate_rating)").eq("id", str(pg_id)).single()
+    result = supabase.from_("pgs").select("*, pg_stats(member_count, review_count, aggregate_rating)").eq("id", str(pg_id)).single()
 
     if result.error or not result.data:
         raise HTTPException(status_code=404, detail="PG not found")
 
-    pg = result.data
+    pg = format_pg_dict(result.data)
 
     # Check visibility
-    membership = supabase.from_("pg_memberships").select("id").eq("pg_id", str(pg_id)).eq("user_id", current_user.user_id).single()
-    is_member = membership.data is not None
-    is_public = (pg.get("member_count", 0) >= 3) or (pg.get("review_count", 0) >= 5)
+    membership = supabase.from_("pg_memberships").select("pg_id").eq("pg_id", str(pg_id)).eq("user_id", current_user.user_id).execute()
+    is_member = bool(membership.data)
+    is_public = pg["is_publicly_visible"]
 
     if not is_member and not is_public:
         raise HTTPException(status_code=404, detail="PG not found")
@@ -135,5 +158,11 @@ async def create_pg(
         # Rollback PG creation
         supabase.from_("pgs").delete().eq("id", pg["id"]).execute()
         raise HTTPException(status_code=400, detail="Failed to create membership")
+
+    pg["member_count"] = 1
+    pg["review_count"] = 0
+    pg["aggregate_rating"] = None
+    pg["tag_averages"] = {}
+    pg["is_publicly_visible"] = False
 
     return PGResponse(**pg)

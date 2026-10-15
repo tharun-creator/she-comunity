@@ -12,8 +12,14 @@ router = APIRouter()
 async def require_admin(current_user: CurrentUser = Depends(get_current_user)) -> CurrentUser:
     """Check if user is admin/staff."""
     supabase = get_supabase_client()
-    result = supabase.from_("users").select("is_staff").eq("auth_user_id", current_user.user_id).single()
-    if result.error or not result.data or not result.data.get("is_staff"):
+    result = (
+        supabase.from_("users")
+        .select("is_staff")
+        .or_(f"id.eq.{current_user.user_id},auth_user_id.eq.{current_user.auth_user_id}")
+        .limit(1)
+        .execute()
+    )
+    if not result.data or not result.data[0].get("is_staff"):
         raise HTTPException(status_code=403, detail="Admin access required")
     return current_user
 
@@ -61,7 +67,7 @@ async def list_reports(
     """List reports with filters."""
     supabase = get_supabase_client()
 
-    query = supabase.from_("reports").select("*, target_preview:target_id(title, body), pg_name:pgs!target_pg_id(name)").order("created_at", ascending=False).limit(limit)
+    query = supabase.from_("reports").select("*").order("created_at", ascending=False).limit(limit)
 
     if status:
         query = query.eq("status", status)
@@ -82,18 +88,18 @@ async def list_reports(
         pg_name = ""
         
         if r["target_type"] == "post":
-            post = supabase.from_("posts_public").select("title, body, author, pg_id").eq("id", r["target_id"]).single().execute()
+            post = supabase.from_("posts_public").select("title, body, author_display_name, pg_id").eq("id", r["target_id"]).single().execute()
             if post.data:
                 target_preview = post.data.get("title", "")[:100]
-                target_author = post.data.get("author", {}).get("display_name", "Anonymous")
+                target_author = post.data.get("author_display_name") or "Anonymous"
                 pg = supabase.from_("pgs").select("name").eq("id", post.data.get("pg_id")).single().execute()
                 if pg.data:
                     pg_name = pg.data.get("name", "")
         else:
-            comment = supabase.from_("comments_public").select("body, author, post_id").eq("id", r["target_id"]).single().execute()
+            comment = supabase.from_("comments_public").select("body, author_display_name, post_id").eq("id", r["target_id"]).single().execute()
             if comment.data:
                 target_preview = comment.data.get("body", "")[:100]
-                target_author = comment.data.get("author", {}).get("display_name", "Anonymous")
+                target_author = comment.data.get("author_display_name") or "Anonymous"
                 post = supabase.from_("posts_public").select("pg_id").eq("id", comment.data.get("post_id")).single().execute()
                 if post.data:
                     pg = supabase.from_("pgs").select("name").eq("id", post.data.get("pg_id")).single().execute()
@@ -122,11 +128,11 @@ async def update_report(
     action_type = action.get("action")
 
     # Get report
-    report_result = supabase.from_("reports").select("*").eq("id", str(report_id)).single()
-    if report_result.error or not report_result.data:
+    report_result = supabase.from_("reports").select("*").eq("id", str(report_id)).execute()
+    if not report_result.data:
         raise HTTPException(status_code=404, detail="Report not found")
 
-    report = report_result.data
+    report = report_result.data[0]
 
     if report["status"] != "pending":
         raise HTTPException(status_code=400, detail="Report already processed")
@@ -152,7 +158,7 @@ async def update_report(
     else:
         raise HTTPException(status_code=400, detail="Invalid action")
 
-    update_result = supabase.from_("reports").update(update_data).eq("id", str(report_id)).select().single()
+    update_result = supabase.from_("reports").update(update_data).eq("id", str(report_id)).execute()
     if update_result.error:
         raise HTTPException(status_code=400, detail=update_result.error.message)
 
@@ -165,7 +171,7 @@ async def update_report(
         "reason": report["reason"],
     }).execute()
 
-    return update_result.data
+    return update_result.data[0] if update_result.data else {}
 
 
 @router.get("/admin/users")
@@ -179,7 +185,7 @@ async def list_users(
     """List users with filters."""
     supabase = get_supabase_client()
 
-    query = supabase.from_("users").select("*, posts:count(id), reports:count(id)").order("created_at", ascending=False).limit(limit)
+    query = supabase.from_("users").select("*").order("created_at", ascending=False).limit(limit)
 
     if search:
         query = query.ilike("display_name", f"%{search}%")

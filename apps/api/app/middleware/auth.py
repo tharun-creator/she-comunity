@@ -9,9 +9,11 @@ security = HTTPBearer(auto_error=False)
 
 
 class CurrentUser:
-    def __init__(self, user_id: str, email: str):
+    def __init__(self, user_id: str, email: str, auth_user_id: str | None = None):
         self.user_id = user_id
+        self.id = user_id
         self.email = email
+        self.auth_user_id = auth_user_id or user_id
 
 
 async def get_current_user(
@@ -31,7 +33,16 @@ async def get_current_user(
         if response.user is None:
             raise HTTPException(status_code=401, detail="Invalid or expired token")
 
-        return CurrentUser(user_id=response.user.id, email=response.user.email or "")
+        auth_uid = response.user.id
+        internal_id = auth_uid
+        try:
+            user_row = supabase.from_("users").select("id").eq("auth_user_id", auth_uid).single().execute()
+            if user_row.data and "id" in user_row.data:
+                internal_id = str(user_row.data["id"])
+        except Exception:
+            pass
+
+        return CurrentUser(user_id=internal_id, email=response.user.email or "", auth_user_id=auth_uid)
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token expired")
     except jwt.InvalidTokenError:

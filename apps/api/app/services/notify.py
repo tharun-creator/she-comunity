@@ -118,24 +118,28 @@ dispatcher = NotificationDispatcher()
 async def create_notification(
     user_id: str,
     type: str,  # reply, upvote, mention, report_resolved
-    pg_id: str,
+    pg_id: Optional[str],
     pg_name: str,
-    post_id: str,
+    post_id: Optional[str],
     post_excerpt: str,
     was_anonymous: bool,
     supabase_client
-) -> str:
+) -> Optional[str]:
     """Create in-app notification and dispatch push/email."""
-    result = supabase_client.from_("notifications").insert({
+    # Ensure empty string is converted to None for UUID columns
+    clean_pg_id = str(pg_id) if pg_id else None
+    clean_post_id = str(post_id) if post_id else None
+
+    insert_payload = {
         "user_id": user_id,
         "type": type,
-        "pg_id": pg_id,
-        "pg_name": pg_name,
-        "post_id": post_id,
-        "post_excerpt": post_excerpt,
+        "pg_id": clean_pg_id,
+        "post_id": clean_post_id,
         "was_anonymous": was_anonymous,
         "is_read": False,
-    }).select().single()
+    }
+
+    result = supabase_client.from_("notifications").insert(insert_payload).select().single()
 
     if result.error:
         logger.error(f"Failed to create notification: {result.error}")
@@ -145,7 +149,7 @@ async def create_notification(
 
     # Dispatch push/email asynchronously (don't block)
     try:
-        # Get user's external ID for OneSignal (stored in users.onesignal_external_id)
+        # Get user's external ID for OneSignal
         user_result = supabase_client.from_("users").select("email, onesignal_external_id").eq("id", user_id).single().execute()
         if user_result.data:
             external_id = user_result.data.get("onesignal_external_id")
@@ -160,8 +164,8 @@ async def create_notification(
                     data={
                         "notification_id": notification["id"],
                         "type": type,
-                        "pg_id": pg_id,
-                        "post_id": post_id,
+                        "pg_id": clean_pg_id,
+                        "post_id": clean_post_id,
                     }
                 )
 
@@ -170,10 +174,7 @@ async def create_notification(
                 await dispatcher.dispatch_email(
                     to_email=email,
                     subject="New notification from SheStays",
-                    html_body=f"""
-                        <p>You have a new notification in SheStays Community.</p>
-                        <p>Open the app to view details.</p>
-                    """,
+                    html_body="<p>You have a new notification in SheStays Community.</p><p>Open the app to view details.</p>",
                     text_body="You have a new notification in SheStays Community. Open the app to view details."
                 )
 
@@ -185,18 +186,25 @@ async def create_notification(
 
 async def notify_on_reply(supabase_client, post_id: str, reply_author_id: str, reply_body: str):
     """Trigger notifications when someone replies to a post."""
-    post = supabase_client.from_("posts_public").select("author_id, pg_id, pg_name, title, body, is_anonymous").eq("id", post_id).single().execute()
-    if not post.data or post.data["author_id"] == reply_author_id:
+    post = supabase_client.from_("posts_public").select("author_id, pg_id, title, body, is_anonymous").eq("id", post_id).single().execute()
+    if not post.data or post.data.get("author_id") == reply_author_id:
         return
+
+    pg_id = post.data.get("pg_id")
+    pg_name = "PG Community"
+    if pg_id:
+        pg_res = supabase_client.from_("pgs").select("name").eq("id", pg_id).single().execute()
+        if pg_res.data:
+            pg_name = pg_res.data.get("name", "PG Community")
 
     await create_notification(
         user_id=post.data["author_id"],
         type="reply",
-        pg_id=post.data["pg_id"],
-        pg_name=post.data["pg_name"],
+        pg_id=pg_id,
+        pg_name=pg_name,
         post_id=post_id,
         post_excerpt=reply_body[:100],
-        was_anonymous=post.data["is_anonymous"],
+        was_anonymous=post.data.get("is_anonymous", False),
         supabase_client=supabase_client
     )
 
@@ -204,37 +212,48 @@ async def notify_on_reply(supabase_client, post_id: str, reply_author_id: str, r
 async def notify_on_upvote(supabase_client, target_type: str, target_id: str, voter_id: str):
     """Trigger notifications when someone upvotes a post/comment."""
     if target_type == "post":
-        post = supabase_client.from_("posts_public").select("author_id, pg_id, pg_name, title, body, is_anonymous").eq("id", target_id).single().execute()
-        if not post.data or post.data["author_id"] == voter_id:
+        post = supabase_client.from_("posts_public").select("author_id, pg_id, title, body, is_anonymous").eq("id", target_id).single().execute()
+        if not post.data or post.data.get("author_id") == voter_id:
             return
+
+        pg_id = post.data.get("pg_id")
+        pg_name = "PG Community"
+        if pg_id:
+            pg_res = supabase_client.from_("pgs").select("name").eq("id", pg_id).single().execute()
+            if pg_res.data:
+                pg_name = pg_res.data.get("name", "PG Community")
 
         await create_notification(
             user_id=post.data["author_id"],
             type="upvote",
-            pg_id=post.data["pg_id"],
-            pg_name=post.data["pg_name"],
+            pg_id=pg_id,
+            pg_name=pg_name,
             post_id=target_id,
-            post_excerpt=post.data["title"],
-            was_anonymous=post.data["is_anonymous"],
+            post_excerpt=post.data.get("title", ""),
+            was_anonymous=post.data.get("is_anonymous", False),
             supabase_client=supabase_client
         )
     elif target_type == "comment":
         comment = supabase_client.from_("comments_public").select("author_id, post_id, body, is_anonymous").eq("id", target_id).single().execute()
-        if not comment.data or comment.data["author_id"] == voter_id:
+        if not comment.data or comment.data.get("author_id") == voter_id:
             return
 
-        post = supabase_client.from_("posts_public").select("pg_id, pg_name").eq("id", comment.data["post_id"]).single().execute()
-        if not post.data:
-            return
+        post = supabase_client.from_("posts_public").select("pg_id").eq("id", comment.data["post_id"]).single().execute()
+        pg_id = post.data.get("pg_id") if post.data else None
+        pg_name = "PG Community"
+        if pg_id:
+            pg_res = supabase_client.from_("pgs").select("name").eq("id", pg_id).single().execute()
+            if pg_res.data:
+                pg_name = pg_res.data.get("name", "PG Community")
 
         await create_notification(
             user_id=comment.data["author_id"],
             type="upvote",
-            pg_id=post.data["pg_id"],
-            pg_name=post.data["pg_name"],
+            pg_id=pg_id,
+            pg_name=pg_name,
             post_id=comment.data["post_id"],
-            post_excerpt=comment.data["body"][:100],
-            was_anonymous=comment.data["is_anonymous"],
+            post_excerpt=comment.data.get("body", "")[:100],
+            was_anonymous=comment.data.get("is_anonymous", False),
             supabase_client=supabase_client
         )
 
@@ -244,9 +263,9 @@ async def notify_on_report_resolved(supabase_client, reporter_id: str, report_id
     await create_notification(
         user_id=reporter_id,
         type="report_resolved",
-        pg_id="",
+        pg_id=None,
         pg_name="",
-        post_id=report_id,
+        post_id=None,
         post_excerpt=f"Your report ({report_reason}) was reviewed",
         was_anonymous=False,
         supabase_client=supabase_client

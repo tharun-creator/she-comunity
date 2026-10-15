@@ -11,6 +11,27 @@ from app.schemas.common import build_cursor_response
 router = APIRouter()
 
 
+def format_post(p: dict) -> dict:
+    """Ensure author dict and all expected fields are present."""
+    post_dict = dict(p)
+    if "author" not in post_dict or not post_dict["author"]:
+        is_anon = post_dict.get("is_anonymous", False)
+        post_dict["author"] = {
+            "is_anonymous": is_anon,
+            "display_name": None if is_anon else post_dict.get("author_display_name"),
+            "avatar_url": None if is_anon else post_dict.get("author_avatar_url"),
+            "anonymous_tag": "Anonymous Resident" if is_anon else None,
+        }
+    post_dict.setdefault("my_vote", 0)
+    post_dict.setdefault("upvotes", 0)
+    post_dict.setdefault("downvotes", 0)
+    post_dict.setdefault("comment_count", 0)
+    post_dict.setdefault("my_poll_vote", None)
+    post_dict.setdefault("is_saved", False)
+    post_dict.setdefault("is_removed", False)
+    return post_dict
+
+
 @router.get("/pgs/{pg_id}/posts", response_model=PostListResponse)
 async def list_posts(
     pg_id: UUID,
@@ -22,15 +43,23 @@ async def list_posts(
     """List posts for a PG with cursor pagination and sort."""
     supabase = get_supabase_client()
 
-    # Check PG visibility
-    pg_result = supabase.from_("pgs").select("id, member_count, review_count").eq("id", str(pg_id)).single()
+    # Check PG exists
+    pg_result = supabase.from_("pgs").select("id").eq("id", str(pg_id)).single()
     if pg_result.error or not pg_result.data:
         raise HTTPException(status_code=404, detail="PG not found")
 
-    pg = pg_result.data
-    membership = supabase.from_("pg_memberships").select("id").eq("pg_id", str(pg_id)).eq("user_id", current_user.user_id).single()
-    is_member = membership.data is not None
-    is_public = (pg.get("member_count", 0) >= 3) or (pg.get("review_count", 0) >= 5)
+    membership = supabase.from_("pg_memberships").select("pg_id").eq("pg_id", str(pg_id)).eq("user_id", current_user.user_id).execute()
+    is_member = bool(membership.data)
+
+    stats_res = supabase.from_("pg_stats").select("member_count, review_count").eq("pg_id", str(pg_id)).execute()
+    if stats_res.data:
+        m_count = stats_res.data[0].get("member_count", 0)
+        r_count = stats_res.data[0].get("review_count", 0)
+    else:
+        m_count = 5  # Allow viewing if stats view is empty/uncomputed
+        r_count = 5
+
+    is_public = (m_count >= 3) or (r_count >= 5)
 
     if not is_member and not is_public:
         raise HTTPException(status_code=404, detail="PG not found")
@@ -60,8 +89,9 @@ async def list_posts(
     if result.error:
         raise HTTPException(status_code=400, detail=result.error.message)
 
-    next_cursor, has_more = build_cursor_response(result.data, limit, cursor_field)
-    return PostListResponse(data=result.data, next_cursor=next_cursor, has_more=has_more)
+    formatted_posts = [format_post(p) for p in (result.data or [])]
+    next_cursor, has_more = build_cursor_response(formatted_posts, limit, cursor_field)
+    return PostListResponse(data=formatted_posts, next_cursor=next_cursor, has_more=has_more)
 
 
 @router.post("/pgs/{pg_id}/posts", response_model=PostResponse, status_code=status.HTTP_201_CREATED)
@@ -156,17 +186,22 @@ async def get_post(
     if result.error or not result.data:
         raise HTTPException(status_code=404, detail="Post not found")
 
-    post = result.data
+    post = format_post(result.data)
 
     # Check PG visibility
-    pg_result = supabase.from_("pgs").select("id, member_count, review_count").eq("id", post["pg_id"]).single()
-    if pg_result.error or not pg_result.data:
-        raise HTTPException(status_code=404, detail="PG not found")
+    pg_id = str(post["pg_id"])
+    membership = supabase.from_("pg_memberships").select("pg_id").eq("pg_id", pg_id).eq("user_id", current_user.user_id).execute()
+    is_member = bool(membership.data)
 
-    pg = pg_result.data
-    membership = supabase.from_("pg_memberships").select("id").eq("pg_id", post["pg_id"]).eq("user_id", current_user.user_id).single()
-    is_member = membership.data is not None
-    is_public = (pg.get("member_count", 0) >= 3) or (pg.get("review_count", 0) >= 5)
+    stats_res = supabase.from_("pg_stats").select("member_count, review_count").eq("pg_id", pg_id).execute()
+    if stats_res.data:
+        m_count = stats_res.data[0].get("member_count", 0)
+        r_count = stats_res.data[0].get("review_count", 0)
+    else:
+        m_count = 5
+        r_count = 5
+
+    is_public = (m_count >= 3) or (r_count >= 5)
 
     if not is_member and not is_public:
         raise HTTPException(status_code=404, detail="Post not found")

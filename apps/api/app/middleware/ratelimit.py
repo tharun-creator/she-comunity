@@ -77,20 +77,17 @@ async def check_write_rate_limit(user_id: str, action_type: str) -> None:
     """
     supabase = get_supabase_client()
     
-    # Get user account info
-    user_resp = supabase.from_("users").select("account_created_at, women_attested_at").eq("auth_user_id", user_id).single()
+    # Get user account info (check both auth_user_id and id)
+    user_resp = supabase.from_("users").select("created_at, women_attested_at").or_(f"auth_user_id.eq.{user_id},id.eq.{user_id}").limit(1).execute()
     if not user_resp.data:
         return  # User not found, let it pass (will fail later)
     
-    user_data = getattr(user_resp, "data", None)
-    if (not user_data or not isinstance(user_data, dict)) and hasattr(user_resp, "execute"):
-        exec_res = user_resp.execute()
-        user_data = getattr(exec_res, "data", None)
+    user_data = user_resp.data[0] if isinstance(user_resp.data, list) else user_resp.data
 
     if not user_data or not isinstance(user_data, dict):
         return  # User not found, let it pass (will fail later)
     
-    account_created = user_data.get("account_created_at")
+    account_created = user_data.get("created_at") or user_data.get("account_created_at")
     
     if not account_created:
         return

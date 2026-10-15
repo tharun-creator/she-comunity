@@ -16,12 +16,12 @@ class NotificationType(str, enum.Enum):
 class NotificationResponse(BaseModel):
     id: UUID
     type: NotificationType
-    pg_id: UUID
-    pg_name: str
-    post_id: UUID
-    post_excerpt: str
-    was_anonymous: bool
-    is_read: bool
+    pg_id: Optional[UUID] = None
+    pg_name: Optional[str] = "PG Community"
+    post_id: Optional[UUID] = None
+    post_excerpt: Optional[str] = ""
+    was_anonymous: bool = False
+    is_read: bool = False
     created_at: datetime
 
     class Config:

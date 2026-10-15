@@ -51,13 +51,13 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         )
 
         # Cross-Origin-Embedder-Policy
-        response.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
+        response.headers["Cross-Origin-Embedder-Policy"] = "unsafe-none"
 
         # Cross-Origin-Opener-Policy
-        response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
+        response.headers["Cross-Origin-Opener-Policy"] = "same-origin-allow-popups"
 
         # Cross-Origin-Resource-Policy
-        response.headers["Cross-Origin-Resource-Policy"] = "same-origin"
+        response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
 
         # Remove server header
         if "Server" in response.headers:

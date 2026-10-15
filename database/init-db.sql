@@ -16,6 +16,8 @@ CREATE TABLE users (
     avatar_url TEXT,
     phone_verified_at TIMESTAMPTZ,
     women_attested_at TIMESTAMPTZ,
+    is_staff BOOLEAN NOT NULL DEFAULT FALSE,
+    banned_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -82,7 +84,7 @@ CREATE TABLE comments (
 -- ============================================
 CREATE TABLE votes (
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    target_type TEXT NOT NULL CHECK (target_type IN ('post', 'comment')),
+    target_type TEXT NOT NULL CHECK (target_type IN ('post', 'comment', 'poll')),
     target_id UUID NOT NULL,
     direction SMALLINT NOT NULL CHECK (direction IN (-1, 1)),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -122,10 +124,26 @@ CREATE TABLE notifications (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     type TEXT NOT NULL CHECK (type IN ('reply', 'upvote', 'mention', 'report_resolved')),
-    pg_id UUID NOT NULL REFERENCES pgs(id),
-    post_id UUID NOT NULL REFERENCES posts(id),
+    pg_id UUID REFERENCES pgs(id) ON DELETE SET NULL,
+    post_id UUID REFERENCES posts(id) ON DELETE SET NULL,
+    pg_name TEXT,
+    post_excerpt TEXT,
     was_anonymous BOOLEAN NOT NULL DEFAULT FALSE,
     is_read BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ============================================
+-- MODERATION LOGS TABLE
+-- ============================================
+CREATE TABLE IF NOT EXISTS moderation_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    moderator_id UUID NOT NULL REFERENCES users(id),
+    action TEXT NOT NULL CHECK (action IN ('hide', 'remove', 'dismiss', 'ban_user', 'unban', 'verify')),
+    target_type TEXT NOT NULL CHECK (target_type IN ('post', 'comment', 'user')),
+    target_id UUID NOT NULL,
+    target_preview TEXT,
+    reason TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -136,6 +154,9 @@ CREATE INDEX ON posts (pg_id, created_at DESC);
 CREATE INDEX ON comments (post_id, parent_comment_id);
 CREATE INDEX ON notifications (user_id, is_read, created_at DESC);
 CREATE INDEX ON reports (status, created_at);
+CREATE INDEX ON moderation_logs (moderator_id, created_at DESC);
+CREATE INDEX ON moderation_logs (target_type, target_id);
+CREATE INDEX ON moderation_logs (action, created_at DESC);
 
 -- ============================================
 -- FULL-TEXT SEARCH COLUMNS AND TRIGGERS
@@ -177,6 +198,78 @@ BEFORE INSERT OR UPDATE ON posts
 FOR EACH ROW EXECUTE FUNCTION posts_search_tsv_update();
 
 -- ============================================
+-- VIEWS AND VISIBILITY FUNCTIONS
+-- ============================================
+CREATE OR REPLACE FUNCTION pg_is_visible(p_pg_id UUID)
+RETURNS BOOLEAN
+LANGUAGE sql
+STABLE
+AS $$
+  SELECT
+    (
+      SELECT COUNT(DISTINCT author_id) FROM posts p
+      WHERE p.pg_id = p_pg_id AND NOT p.is_removed
+    ) >= 3
+    OR (
+      SELECT COUNT(*) FROM posts p
+      WHERE p.pg_id = p_pg_id AND p.type = 'review' AND NOT p.is_removed
+    ) >= 5;
+$$;
+
+CREATE OR REPLACE VIEW pg_stats AS
+SELECT
+  pg.id AS pg_id,
+  COUNT(DISTINCT m.user_id) AS member_count,
+  COUNT(*) FILTER (WHERE p.type = 'review' AND NOT p.is_removed) AS review_count,
+  ROUND(AVG(p.overall_rating) FILTER (WHERE p.type = 'review' AND NOT p.is_removed), 1) AS aggregate_rating
+FROM pgs pg
+LEFT JOIN pg_memberships m ON m.pg_id = pg.id
+LEFT JOIN posts p ON p.pg_id = pg.id
+GROUP BY pg.id;
+
+CREATE OR REPLACE VIEW posts_public AS
+SELECT
+  p.id,
+  p.pg_id,
+  p.type,
+  p.title,
+  p.body,
+  p.is_anonymous,
+  CASE WHEN p.is_anonymous THEN NULL ELSE p.author_id END AS author_id,
+  CASE WHEN p.is_anonymous THEN NULL ELSE u.display_name END AS author_display_name,
+  CASE WHEN p.is_anonymous THEN NULL ELSE u.avatar_url END AS author_avatar_url,
+  p.residency_claim,
+  p.rating_tags,
+  p.overall_rating,
+  p.poll_options,
+  p.created_at,
+  COALESCE((SELECT COUNT(*) FROM votes v WHERE v.target_type = 'post' AND v.target_id = p.id AND v.direction = 1), 0) AS upvotes,
+  COALESCE((SELECT COUNT(*) FROM votes v WHERE v.target_type = 'post' AND v.target_id = p.id AND v.direction = -1), 0) AS downvotes,
+  COALESCE((SELECT COUNT(*) FROM comments c WHERE c.post_id = p.id AND NOT c.is_removed), 0) AS comment_count
+FROM posts p
+JOIN users u ON u.id = p.author_id
+WHERE NOT p.is_removed;
+
+CREATE OR REPLACE VIEW comments_public AS
+SELECT
+  c.id,
+  c.post_id,
+  c.parent_comment_id,
+  c.is_anonymous,
+  CASE WHEN c.is_anonymous THEN NULL ELSE c.author_id END AS author_id,
+  CASE WHEN c.is_anonymous THEN NULL ELSE u.display_name END AS author_display_name,
+  CASE WHEN c.is_anonymous THEN NULL ELSE u.avatar_url END AS author_avatar_url,
+  c.body,
+  c.created_at,
+  COALESCE((SELECT COUNT(*) FROM votes v WHERE v.target_type = 'comment' AND v.target_id = c.id AND v.direction = 1), 0) AS upvotes,
+  COALESCE((SELECT COUNT(*) FROM votes v WHERE v.target_type = 'comment' AND v.target_id = c.id AND v.direction = -1), 0) AS downvotes
+FROM comments c
+JOIN users u ON u.id = c.author_id
+JOIN posts p ON p.id = c.post_id
+WHERE NOT c.is_removed
+  AND NOT p.is_removed;
+
+-- ============================================
 -- SEED DATA FOR LOCAL DEVELOPMENT
 -- ============================================
 
@@ -184,12 +277,12 @@ FOR EACH ROW EXECUTE FUNCTION posts_search_tsv_update();
 -- These are fixed UUIDs so the same data is created every time
 
 -- Seed Users (5 test users)
-INSERT INTO users (id, auth_user_id, display_name, city, avatar_url, phone_verified_at, women_attested_at, created_at) VALUES
-    ('11111111-1111-1111-1111-111111111111', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Priya Sharma', 'Chennai', NULL, NOW(), NOW(), NOW()),
-    ('22222222-2222-2222-2222-222222222222', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'Anjali Patel', 'Chennai', NULL, NOW(), NOW(), NOW()),
-    ('33333333-3333-3333-3333-333333333333', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'Meera Reddy', 'Chennai', NULL, NOW(), NOW(), NOW()),
-    ('44444444-4444-4444-4444-444444444444', 'dddddddd-dddd-dddd-dddd-dddddddddddd', 'Kavya Nair', 'Chennai', NULL, NOW(), NOW(), NOW()),
-    ('55555555-5555-5555-5555-555555555555', 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', 'Divya Krishnan', 'Chennai', NULL, NOW(), NOW(), NOW())
+INSERT INTO users (id, auth_user_id, display_name, city, avatar_url, phone_verified_at, women_attested_at, is_staff, created_at) VALUES
+    ('11111111-1111-1111-1111-111111111111', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Priya Sharma', 'Chennai', NULL, NOW(), NOW(), TRUE, NOW()),
+    ('22222222-2222-2222-2222-222222222222', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'Anjali Patel', 'Chennai', NULL, NOW(), NOW(), FALSE, NOW()),
+    ('33333333-3333-3333-3333-333333333333', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'Meera Reddy', 'Chennai', NULL, NOW(), NOW(), FALSE, NOW()),
+    ('44444444-4444-4444-4444-444444444444', 'dddddddd-dddd-dddd-dddd-dddddddddddd', 'Kavya Nair', 'Chennai', NULL, NOW(), NOW(), FALSE, NOW()),
+    ('55555555-5555-5555-5555-555555555555', 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', 'Divya Krishnan', 'Chennai', NULL, NOW(), NOW(), FALSE, NOW())
 ON CONFLICT (id) DO NOTHING;
 
 -- Seed PGs (5 PGs across Chennai areas)
@@ -253,9 +346,9 @@ INSERT INTO notifications (id, user_id, type, pg_id, post_id, was_anonymous, is_
     ('n2222222-2222-2222-2222-222222222222', '22222222-2222-2222-2222-222222222222', 'upvote', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'p1111111-1111-1111-1111-111111111111', FALSE, FALSE, NOW() - INTERVAL '2 hours')
 ON CONFLICT (id) DO NOTHING;
 
--- Update search_tsv columns for existing data
-UPDATE pgs SET search_tsv = pgs_search_tsv_update();
-UPDATE posts SET search_tsv = posts_search_tsv_update();
+-- Trigger search_tsv calculation for seed data
+UPDATE pgs SET name = name;
+UPDATE posts SET title = title;
 
 -- ============================================
 -- VERIFICATION QUERIES (for manual testing)

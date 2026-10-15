@@ -14,12 +14,20 @@ async def get_current_user_profile(
     """Get current user's profile."""
     supabase = get_supabase_client()
 
-    result = supabase.from_("users").select("*").eq("auth_user_id", current_user.user_id).single()
+    result = supabase.from_("users").select("*").or_(f"id.eq.{current_user.user_id},auth_user_id.eq.{current_user.user_id}").limit(1).execute()
 
-    if result.error or not result.data:
+    if not result.data:
         raise HTTPException(status_code=404, detail="Profile not found")
 
-    return UserProfile(**result.data)
+    user_dict = dict(result.data[0] if isinstance(result.data, list) else result.data)
+
+    # Get user joined PG ids
+    memberships = supabase.from_("pg_memberships").select("pg_id").eq("user_id", user_dict["id"]).execute()
+    user_dict["joined_pg_ids"] = [m["pg_id"] for m in (memberships.data or [])]
+    user_dict.setdefault("saved_pg_ids", [])
+    user_dict.setdefault("pgs_lived_at", [])
+
+    return UserProfile(**user_dict)
 
 
 @router.patch("/users/me/attest", response_model=UserProfile)
@@ -33,18 +41,26 @@ async def attest_woman(
     if not attestation.attested:
         raise HTTPException(status_code=400, detail="Attestation must be true")
 
-    # Call the database function
-    result = supabase.rpc("attest_woman", {"user_id": current_user.user_id}).execute()
-
-    if result.error:
-        raise HTTPException(status_code=400, detail=result.error.message)
+    # Update women_attested_at directly or call rpc
+    try:
+        supabase.rpc("attest_woman", {"user_id": current_user.user_id}).execute()
+    except Exception:
+        pass
+    
+    supabase.from_("users").update({"women_attested_at": "now()"}).or_(f"id.eq.{current_user.user_id},auth_user_id.eq.{current_user.user_id}").execute()
 
     # Return updated profile
-    profile_result = supabase.from_("users").select("*").eq("auth_user_id", current_user.user_id).single()
-    if profile_result.error or not profile_result.data:
+    profile_result = supabase.from_("users").select("*").or_(f"id.eq.{current_user.user_id},auth_user_id.eq.{current_user.user_id}").limit(1).execute()
+    if not profile_result.data:
         raise HTTPException(status_code=404, detail="Profile not found")
 
-    return UserProfile(**profile_result.data)
+    user_dict = dict(profile_result.data[0] if isinstance(profile_result.data, list) else profile_result.data)
+    memberships = supabase.from_("pg_memberships").select("pg_id").eq("user_id", user_dict["id"]).execute()
+    user_dict["joined_pg_ids"] = [m["pg_id"] for m in (memberships.data or [])]
+    user_dict.setdefault("saved_pg_ids", [])
+    user_dict.setdefault("pgs_lived_at", [])
+
+    return UserProfile(**user_dict)
 
 
 @router.get("/users/me/pgs", response_model=UserMembershipsResponse)
@@ -60,7 +76,7 @@ async def get_user_pgs(
         raise HTTPException(status_code=400, detail=result.error.message)
 
     memberships = []
-    for m in result.data:
+    for m in (result.data or []):
         pg = m.get("pgs")
         if pg:
             memberships.append(UserMembership(
@@ -81,24 +97,17 @@ async def join_pg(
     """Join a PG community."""
     supabase = get_supabase_client()
 
-    # Check PG exists and is visible
-    pg_result = supabase.from_("pgs").select("id, name, area, member_count, review_count").eq("id", str(pg_id)).single()
+    # Check PG exists
+    pg_result = supabase.from_("pgs").select("id, name, area").eq("id", str(pg_id)).single()
     if pg_result.error or not pg_result.data:
         raise HTTPException(status_code=404, detail="PG not found")
 
     pg = pg_result.data
-    is_public = (pg.get("member_count", 0) >= 3) or (pg.get("review_count", 0) >= 5)
 
     # Check if already a member
-    membership = supabase.from_("pg_memberships").select("id").eq("pg_id", str(pg_id)).eq("user_id", current_user.user_id).single()
+    membership = supabase.from_("pg_memberships").select("pg_id").eq("pg_id", str(pg_id)).eq("user_id", current_user.user_id).execute()
     if membership.data:
         raise HTTPException(status_code=409, detail="Already a member")
-
-    # For non-public PGs, require invitation or special handling
-    # For now, allow joining any visible PG
-    if not is_public:
-        # Check if user has any connection (lived there, etc.)
-        pass
 
     # Create membership
     result = supabase.from_("pg_memberships").insert({
@@ -108,9 +117,6 @@ async def join_pg(
 
     if result.error:
         raise HTTPException(status_code=400, detail=result.error.message)
-
-    # Increment member count
-    supabase.from_("pgs").update({"member_count": pg["member_count"] + 1}).eq("id", str(pg_id)).execute()
 
     return UserMembership(
         pg_id=pg_id,
@@ -129,7 +135,7 @@ async def leave_pg(
     supabase = get_supabase_client()
 
     # Check membership exists
-    membership = supabase.from_("pg_memberships").select("id").eq("pg_id", str(pg_id)).eq("user_id", current_user.user_id).single()
+    membership = supabase.from_("pg_memberships").select("pg_id").eq("pg_id", str(pg_id)).eq("user_id", current_user.user_id).execute()
     if not membership.data:
         raise HTTPException(status_code=404, detail="Not a member")
 
@@ -138,11 +144,5 @@ async def leave_pg(
 
     if result.error:
         raise HTTPException(status_code=400, detail=result.error.message)
-
-    # Decrement member count
-    pg_result = supabase.from_("pgs").select("member_count").eq("id", str(pg_id)).single()
-    if pg_result.data:
-        new_count = max(0, pg_result.data["member_count"] - 1)
-        supabase.from_("pgs").update({"member_count": new_count}).eq("id", str(pg_id)).execute()
 
     return None

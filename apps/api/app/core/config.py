@@ -29,6 +29,12 @@ class Settings(BaseSettings):
     r2_bucket_name: str = "shestays-uploads"
     r2_public_domain: str = ""
 
+    # SMTP (Email notifications)
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+
     # Sentry
     sentry_dsn: str = ""
 

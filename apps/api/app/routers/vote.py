@@ -26,20 +26,24 @@ async def vote_post(
     if post_result.error or not post_result.data:
         raise HTTPException(status_code=404, detail="Post not found")
 
-    # Upsert vote (unique constraint on user_id, target_type, target_id)
-    vote_result = supabase.from_("votes").upsert({
-        "user_id": current_user.user_id,
-        "target_type": "post",
-        "target_id": str(post_id),
-        "direction": vote_data.direction,
-    }).execute()
+    if vote_data.direction == 0:
+        # Remove vote
+        supabase.from_("votes").delete().eq("user_id", current_user.user_id).eq("target_type", "post").eq("target_id", str(post_id)).execute()
+    else:
+        # Upsert vote (unique constraint on user_id, target_type, target_id)
+        vote_result = supabase.from_("votes").upsert({
+            "user_id": current_user.user_id,
+            "target_type": "post",
+            "target_id": str(post_id),
+            "direction": vote_data.direction,
+        }).execute()
 
-    if vote_result.error:
-        raise HTTPException(status_code=400, detail=vote_result.error.message)
+        if vote_result.error:
+            raise HTTPException(status_code=400, detail=vote_result.error.message)
 
-    # Notify on upvote (only for upvotes, not removals or downvotes)
-    if vote_data.direction == 1:
-        await notify_on_upvote(supabase, "post", str(post_id), current_user.user_id)
+        # Notify on upvote (only for upvotes, not removals or downvotes)
+        if vote_data.direction == 1:
+            await notify_on_upvote(supabase, "post", str(post_id), current_user.user_id)
 
     # Get updated counts
     upvotes = supabase.from_("votes").select("id", count="exact").eq("target_type", "post").eq("target_id", str(post_id)).eq("direction", 1).execute().count or 0
@@ -66,20 +70,24 @@ async def vote_comment(
     if comment_result.error or not comment_result.data:
         raise HTTPException(status_code=404, detail="Comment not found")
 
-    # Upsert vote
-    vote_result = supabase.from_("votes").upsert({
-        "user_id": current_user.user_id,
-        "target_type": "comment",
-        "target_id": str(comment_id),
-        "direction": vote_data.direction,
-    }).execute()
+    if vote_data.direction == 0:
+        # Remove vote
+        supabase.from_("votes").delete().eq("user_id", current_user.user_id).eq("target_type", "comment").eq("target_id", str(comment_id)).execute()
+    else:
+        # Upsert vote
+        vote_result = supabase.from_("votes").upsert({
+            "user_id": current_user.user_id,
+            "target_type": "comment",
+            "target_id": str(comment_id),
+            "direction": vote_data.direction,
+        }).execute()
 
-    if vote_result.error:
-        raise HTTPException(status_code=400, detail=vote_result.error.message)
+        if vote_result.error:
+            raise HTTPException(status_code=400, detail=vote_result.error.message)
 
-    # Notify on upvote (only for upvotes, not removals or downvotes)
-    if vote_data.direction == 1:
-        await notify_on_upvote(supabase, "comment", str(comment_id), current_user.user_id)
+        # Notify on upvote (only for upvotes, not removals or downvotes)
+        if vote_data.direction == 1:
+            await notify_on_upvote(supabase, "comment", str(comment_id), current_user.user_id)
 
     # Get updated counts
     upvotes = supabase.from_("votes").select("id", count="exact").eq("target_type", "comment").eq("target_id", str(comment_id)).eq("direction", 1).execute().count or 0
@@ -101,20 +109,21 @@ async def vote_poll(
 
     await check_write_rate_limit(current_user.user_id, "vote")
 
+    # Check if user already voted on this poll
+    existing_poll_vote = supabase.from_("votes").select("target_id").eq("user_id", current_user.user_id).eq("target_type", "poll").eq("target_id", str(post_id)).execute()
+    if existing_poll_vote.data:
+        raise HTTPException(status_code=400, detail="Already voted on this poll")
+
     # Get post with poll options
-    post_result = supabase.from_("posts_public").select("poll_options, my_poll_vote").eq("id", str(post_id)).single()
+    post_result = supabase.from_("posts_public").select("poll_options").eq("id", str(post_id)).single()
     if post_result.error or not post_result.data:
         raise HTTPException(status_code=404, detail="Post not found")
 
     post = post_result.data
     poll_options = post.get("poll_options") or []
-    my_poll_vote = post.get("my_poll_vote")
 
     if not poll_options:
         raise HTTPException(status_code=400, detail="Not a poll post")
-
-    if my_poll_vote:
-        raise HTTPException(status_code=400, detail="Already voted on this poll")
 
     # Find and update the option
     option_found = False

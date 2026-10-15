@@ -12,6 +12,26 @@ from app.schemas.common import build_cursor_response
 router = APIRouter()
 
 
+def format_comment(c: dict) -> dict:
+    """Format comment author and default fields."""
+    comment_dict = dict(c)
+    if "author" not in comment_dict or not comment_dict["author"]:
+        is_anon = comment_dict.get("is_anonymous", False)
+        comment_dict["author"] = {
+            "is_anonymous": is_anon,
+            "display_name": None if is_anon else comment_dict.get("author_display_name"),
+            "avatar_url": None if is_anon else comment_dict.get("author_avatar_url"),
+            "anonymous_tag": "Anonymous Resident" if is_anon else None,
+        }
+    comment_dict.setdefault("my_vote", 0)
+    comment_dict.setdefault("upvotes", 0)
+    comment_dict.setdefault("downvotes", 0)
+    comment_dict.setdefault("is_removed", False)
+    if "replies" in comment_dict and isinstance(comment_dict["replies"], list):
+        comment_dict["replies"] = [format_comment(r) for r in comment_dict["replies"]]
+    return comment_dict
+
+
 @router.get("/posts/{post_id}/comments", response_model=CommentListResponse)
 async def list_comments(
     post_id: UUID,
@@ -22,31 +42,35 @@ async def list_comments(
     """List comments for a post (threaded)."""
     supabase = get_supabase_client()
 
-    # Verify post exists and is accessible
+    # Verify post exists
     post_result = supabase.from_("posts_public").select("pg_id").eq("id", str(post_id)).single()
     if post_result.error or not post_result.data:
         raise HTTPException(status_code=404, detail="Post not found")
 
-    pg_id = post_result.data["pg_id"]
+    pg_id = str(post_result.data["pg_id"])
 
     # Check PG visibility
-    pg_result = supabase.from_("pgs").select("id, member_count, review_count").eq("id", pg_id).single()
-    if pg_result.error or not pg_result.data:
-        raise HTTPException(status_code=404, detail="PG not found")
+    membership = supabase.from_("pg_memberships").select("pg_id").eq("pg_id", pg_id).eq("user_id", current_user.user_id).execute()
+    is_member = bool(membership.data)
 
-    pg = pg_result.data
-    membership = supabase.from_("pg_memberships").select("id").eq("pg_id", pg_id).eq("user_id", current_user.user_id).single()
-    is_member = membership.data is not None
-    is_public = (pg.get("member_count", 0) >= 3) or (pg.get("review_count", 0) >= 5)
+    stats_res = supabase.from_("pg_stats").select("member_count, review_count").eq("pg_id", pg_id).execute()
+    if stats_res.data:
+        m_count = stats_res.data[0].get("member_count", 0)
+        r_count = stats_res.data[0].get("review_count", 0)
+    else:
+        m_count = 5
+        r_count = 5
+
+    is_public = (m_count >= 3) or (r_count >= 5)
 
     if not is_member and not is_public:
         raise HTTPException(status_code=404, detail="Post not found")
 
-    # Get top-level comments
+    # Get top-level comments (ascending)
     query = supabase.from_("comments_public").select("*").eq("post_id", str(post_id)).is_("parent_comment_id", "null").order("created_at", ascending=True).limit(limit)
 
     if cursor:
-        query = query.lt("created_at", cursor)
+        query = query.gt("created_at", cursor)
 
     result = query.execute()
 
@@ -54,13 +78,14 @@ async def list_comments(
         raise HTTPException(status_code=400, detail=result.error.message)
 
     # For each top-level comment, fetch replies
-    comments = result.data
+    comments = result.data or []
     for comment in comments:
         replies_result = supabase.from_("comments_public").select("*").eq("parent_comment_id", comment["id"]).order("created_at", ascending=True).execute()
         comment["replies"] = replies_result.data or []
 
-    next_cursor, has_more = build_cursor_response(comments, limit, "created_at")
-    return CommentListResponse(data=comments, next_cursor=next_cursor, has_more=has_more)
+    formatted_comments = [format_comment(c) for c in comments]
+    next_cursor, has_more = build_cursor_response(formatted_comments, limit, "created_at")
+    return CommentListResponse(data=formatted_comments, next_cursor=next_cursor, has_more=has_more)
 
 
 @router.post("/posts/{post_id}/comments", response_model=CommentResponse, status_code=status.HTTP_201_CREATED)
@@ -77,17 +102,21 @@ async def create_comment(
     if post_result.error or not post_result.data or post_result.data.get("is_removed"):
         raise HTTPException(status_code=404, detail="Post not found")
 
-    pg_id = post_result.data["pg_id"]
+    pg_id = str(post_result.data["pg_id"])
 
     # Check PG visibility
-    pg_result = supabase.from_("pgs").select("id, member_count, review_count").eq("id", pg_id).single()
-    if pg_result.error or not pg_result.data:
-        raise HTTPException(status_code=404, detail="PG not found")
+    membership = supabase.from_("pg_memberships").select("pg_id").eq("pg_id", pg_id).eq("user_id", current_user.user_id).execute()
+    is_member = bool(membership.data)
 
-    pg = pg_result.data
-    membership = supabase.from_("pg_memberships").select("id").eq("pg_id", pg_id).eq("user_id", current_user.user_id).single()
-    is_member = membership.data is not None
-    is_public = (pg.get("member_count", 0) >= 3) or (pg.get("review_count", 0) >= 5)
+    stats_res = supabase.from_("pg_stats").select("member_count, review_count").eq("pg_id", pg_id).execute()
+    if stats_res.data:
+        m_count = stats_res.data[0].get("member_count", 0)
+        r_count = stats_res.data[0].get("review_count", 0)
+    else:
+        m_count = 5
+        r_count = 5
+
+    is_public = (m_count >= 3) or (r_count >= 5)
 
     if not is_member and not is_public:
         raise HTTPException(status_code=404, detail="Post not found")
@@ -101,12 +130,13 @@ async def create_comment(
     # Get author info
     author_info = {"is_anonymous": comment_data.is_anonymous}
     if not comment_data.is_anonymous:
-        user_result = supabase.from_("users").select("display_name, avatar_url").eq("auth_user_id", current_user.user_id).single()
+        user_result = supabase.from_("users").select("display_name, avatar_url").or_(f"id.eq.{current_user.user_id},auth_user_id.eq.{current_user.user_id}").limit(1).execute()
         if user_result.data:
+            u_row = user_result.data[0] if isinstance(user_result.data, list) else user_result.data
             author_info = {
                 "is_anonymous": False,
-                "display_name": user_result.data.get("display_name"),
-                "avatar_url": user_result.data.get("avatar_url"),
+                "display_name": u_row.get("display_name"),
+                "avatar_url": u_row.get("avatar_url"),
             }
         else:
             author_info = {"is_anonymous": True, "anonymous_tag": "Anonymous Resident"}
