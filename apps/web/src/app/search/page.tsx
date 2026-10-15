@@ -93,17 +93,17 @@ export default function SearchPage() {
 
   return (
     <AppShell contentSize="wide">
-      {/* Top Hero Sticker Header */}
+      {/* Top Header */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-1.5 rounded-lg border-2 border-black bg-[#FFD23F] px-2.5 py-1 text-xs font-black uppercase tracking-wider text-black shadow-[2px_2px_0px_#000]">
-            <Sparkles className="size-3.5 fill-black text-black" />
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-[#FEF3C7] px-3 py-1 text-xs font-bold text-[#78350F]">
+            <Sparkles className="size-3.5 fill-[#F59E0B] text-[#F59E0B]" />
             Verified Women Hostels & PGs
           </div>
-          <h1 className="mt-2 font-heading text-2xl font-black tracking-tight text-black sm:text-4xl">
+          <h1 className="mt-2 font-heading text-2xl font-black tracking-tight text-gray-900 sm:text-3xl">
             Explore Chennai PG Communities
           </h1>
-          <p className="mt-1 text-sm font-bold text-gray-600">
+          <p className="mt-1 text-xs sm:text-sm font-medium text-gray-500">
             Real resident stories, verified safety tags, and honest community ratings.
           </p>
         </div>
@@ -111,9 +111,9 @@ export default function SearchPage() {
         <button
           type="button"
           onClick={() => openCreatePg(query)}
-          className="inline-flex items-center gap-2 rounded-xl border-2 border-black bg-[#FF4B72] px-4 py-2.5 text-xs font-black text-white shadow-[3px_3px_0px_#000] transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[1px_1px_0px_#000]"
+          className="inline-flex items-center gap-2 rounded-full bg-[#FF386B] px-5 py-2.5 text-xs font-bold text-white shadow-sm transition-all hover:bg-[#E02657] active:scale-95"
         >
-          <Plus className="size-4 stroke-[3]" /> Add A PG
+          <Plus className="size-4" /> Add A PG
         </button>
       </div>
 
@@ -262,19 +262,19 @@ export default function SearchPage() {
         </section>
       )}
 
-      {/* Neubrutalism Add PG Dialog */}
+      {/* Add PG Dialog */}
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
-        <DialogContent className="max-w-md rounded-2xl border-[3px] border-black bg-[#FFFDF9] p-6 shadow-[6px_6px_0px_#000]">
+        <DialogContent className="max-w-md rounded-2xl border border-[#F0E6E8] bg-white p-6 shadow-xl">
           <DialogHeader>
-            <DialogTitle className="font-heading text-xl font-black text-black">Add New PG Community</DialogTitle>
-            <DialogDescription className="text-xs font-bold text-gray-600">
+            <DialogTitle className="font-heading text-lg font-bold text-gray-900">Add New PG Community</DialogTitle>
+            <DialogDescription className="text-xs text-gray-500">
               Start a community for women residents to share authentic experiences and safety ratings.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-3">
             <div>
-              <label htmlFor="pg-name" className="mb-1.5 block text-xs font-black uppercase tracking-wider text-black">
+              <label htmlFor="pg-name" className="mb-1.5 block text-xs font-bold text-gray-700">
                 PG Name
               </label>
               <input
@@ -282,19 +282,19 @@ export default function SearchPage() {
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 placeholder="e.g. Sunrise Ladies Hostel"
-                className="w-full rounded-xl border-2 border-black bg-white px-3 py-2 text-sm font-bold text-black focus:outline-none focus:shadow-[3px_3px_0px_#000]"
+                className="w-full rounded-xl border border-[#F0E6E8] bg-[#FAF8F8] px-3 py-2 text-xs sm:text-sm font-medium text-gray-900 focus:outline-none focus:border-[#FF386B]"
               />
             </div>
 
             <div>
-              <label htmlFor="pg-area" className="mb-1.5 block text-xs font-black uppercase tracking-wider text-black">
+              <label htmlFor="pg-area" className="mb-1.5 block text-xs font-bold text-gray-700">
                 Chennai Area
               </label>
               <select
                 id="pg-area"
                 value={newArea}
                 onChange={(e) => setNewArea(e.target.value as ChennaiArea)}
-                className="w-full rounded-xl border-2 border-black bg-white px-3 py-2 text-sm font-bold text-black focus:outline-none focus:shadow-[3px_3px_0px_#000]"
+                className="w-full rounded-xl border border-[#F0E6E8] bg-[#FAF8F8] px-3 py-2 text-xs sm:text-sm font-medium text-gray-900 focus:outline-none focus:border-[#FF386B]"
               >
                 {CHENNAI_AREAS.map((a) => (
                   <option key={a} value={a}>{a}</option>
@@ -307,7 +307,7 @@ export default function SearchPage() {
             <button
               type="button"
               onClick={() => setAddOpen(false)}
-              className="rounded-xl border-2 border-black bg-white px-4 py-2 text-xs font-black text-black shadow-[2px_2px_0px_#000] hover:bg-gray-100"
+              className="rounded-full border border-gray-200 bg-white px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
             >
               Cancel
             </button>
@@ -315,7 +315,7 @@ export default function SearchPage() {
               type="button"
               disabled={!newName.trim() || createMutation.isPending}
               onClick={() => createMutation.mutate()}
-              className="inline-flex items-center gap-1.5 rounded-xl border-2 border-black bg-[#FF4B72] px-5 py-2 text-xs font-black text-white shadow-[2.5px_2.5px_0px_#000] transition-transform hover:-translate-y-0.5 active:translate-y-0.5 disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-full bg-[#FF386B] px-5 py-2 text-xs font-bold text-white shadow-sm transition-all hover:bg-[#E02657] disabled:opacity-50"
             >
               {createMutation.isPending ? "Creating..." : "Create Community"}
             </button>

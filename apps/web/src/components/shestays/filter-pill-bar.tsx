@@ -13,21 +13,24 @@ export function FilterPillBar<T extends string>({
 }) {
   return (
     <div className="flex gap-2 overflow-x-auto pb-1 md:flex-wrap md:overflow-visible [scrollbar-width:none]">
-      {options.map((opt) => (
-        <button
-          key={opt}
-          type="button"
-          onClick={() => onChange(opt)}
-          className={cn(
-            "min-h-9 shrink-0 rounded-xl border-2 border-black px-3.5 py-1.5 text-xs font-black transition-all cursor-pointer focus:outline-none",
-            value === opt
-              ? "bg-[#121212] text-white shadow-[2px_2px_0px_#000]"
-              : "bg-white text-black shadow-[2px_2px_0px_#000] hover:bg-[#FFE5EC] hover:-translate-y-0.5 active:translate-y-0.5"
-          )}
-        >
-          {opt}
-        </button>
-      ))}
+      {options.map((opt) => {
+        const active = value === opt;
+        return (
+          <button
+            key={opt}
+            type="button"
+            onClick={() => onChange(opt)}
+            className={cn(
+              "shrink-0 rounded-full px-4 py-1.5 text-xs font-bold transition-all cursor-pointer focus:outline-none",
+              active
+                ? "bg-[#FFE8EE] text-[#FF386B] border border-[#FCE4EC] shadow-xs"
+                : "bg-white text-gray-600 border border-[#F0E6E8] hover:bg-[#FAF8F8] hover:text-gray-900"
+            )}
+          >
+            {opt}
+          </button>
+        );
+      })}
     </div>
   );
 }

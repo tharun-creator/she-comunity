@@ -3,15 +3,14 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Bell, ChevronDown, HeartHandshake, Shield } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Search, Bell, ChevronDown, Heart } from "lucide-react";
 import { fetchNotifications, fetchProfile } from "@/lib/api/adapters";
 import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
-  { href: "/", label: "Feed", trackActive: true },
-  { href: "/search", label: "Find PGs", trackActive: true },
-  { href: "/notifications", label: "Alerts", trackActive: true },
+  { href: "/", label: "Home" },
+  { href: "/search", label: "Search" },
+  { href: "/notifications", label: "Notifications", hasBadge: true },
 ];
 
 export function TopNav() {
@@ -21,77 +20,81 @@ export function TopNav() {
   const { data: notifications } = useQuery({ queryKey: ["notifications"], queryFn: fetchNotifications });
   const unreadCount = notifications?.filter((n) => !n.isRead).length ?? 0;
 
+  const initials = profile?.displayName
+    ? profile.displayName
+        .split(" ")
+        .map((p) => p[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase()
+    : "PS";
+
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b-[2.5px] border-black bg-white px-4 shadow-[0_3px_0px_#000] sm:px-6">
-      {/* Brand Logo with Neubrutalism Sticker Style */}
-      <Link
-        href="/"
-        className="group flex items-center gap-2.5 rounded-xl border-2 border-black bg-[#FFE5EC] px-3 py-1.5 shadow-[2px_2px_0px_#000] transition-transform hover:-translate-y-0.5 active:translate-y-0.5 focus:outline-none"
-      >
-        <span className="flex size-7 items-center justify-center rounded-lg border-2 border-black bg-[#FF4B72] text-white shadow-[1.5px_1.5px_0px_#000] transition-transform group-hover:rotate-[-8deg]">
-          <HeartHandshake className="size-4" strokeWidth={2.5} />
-        </span>
-        <span className="font-heading text-base font-black tracking-tight text-black sm:text-lg">
-          She<span className="text-[#FF4B72]">Stays</span>
-        </span>
-        <span className="hidden rounded border border-black bg-[#FFD23F] px-1 py-0.2 text-[9px] font-black uppercase text-black sm:inline">
-          Women
+    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-[#F0E6E8] bg-white px-4 sm:px-8">
+      {/* Brand Logo matching Mockup: Pink Heart Icon + SheStays */}
+      <Link href="/" className="group flex items-center gap-2.5 focus:outline-none">
+        <div className="flex size-9 items-center justify-center rounded-2xl bg-[#FF386B] text-white shadow-sm transition-transform group-hover:scale-105">
+          <Heart className="size-5 fill-white stroke-none" />
+        </div>
+        <span className="font-heading text-xl font-black tracking-tight text-black">
+          She<span className="text-[#FF386B]">Stays</span>
         </span>
       </Link>
 
-      {/* Center Nav Pills */}
-      <nav aria-label="Main navigation" className="ml-6 hidden items-center gap-1.5 rounded-2xl border-2 border-black bg-[#FFFDF9] p-1 shadow-[2px_2px_0px_#000] md:flex">
+      {/* Center Nav Pills matching Mockup */}
+      <nav aria-label="Main navigation" className="hidden items-center gap-2 md:flex">
         {NAV_LINKS.map((item) => {
-          const active = item.trackActive && pathname === item.href;
+          const active = pathname === item.href;
           return (
             <Link
               key={item.label}
               href={item.href}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "relative inline-flex items-center rounded-xl px-4 py-1.5 text-xs font-black transition-all",
+                "relative inline-flex items-center rounded-full px-5 py-1.5 text-sm font-semibold transition-all",
                 active
-                  ? "border-2 border-black bg-[#121212] text-white shadow-[1.5px_1.5px_0px_#000]"
-                  : "text-black hover:bg-[#FFE5EC] hover:text-[#FF4B72]"
+                  ? "bg-[#FFE8EE] text-[#FF386B] font-bold"
+                  : "text-gray-600 hover:text-black hover:bg-gray-50"
               )}
             >
               {item.label}
+              {item.hasBadge && unreadCount > 0 && (
+                <span className="ml-1.5 size-2 rounded-full bg-[#FF386B]" />
+              )}
             </Link>
           );
         })}
       </nav>
 
-      {/* Right Controls (Image 1 profile & action layout) */}
-      <div className="flex items-center gap-2.5 sm:gap-3">
+      {/* Right Controls matching Mockup */}
+      <div className="flex items-center gap-3">
         <button
           type="button"
           onClick={() => router.push("/search")}
           aria-label="Search"
-          className="flex size-9 items-center justify-center rounded-xl border-2 border-black bg-white text-black shadow-[2px_2px_0px_#000] transition-transform hover:-translate-y-0.5 active:translate-y-0.5"
+          className="flex size-9 items-center justify-center rounded-full text-gray-600 transition-colors hover:bg-gray-100 hover:text-black"
         >
-          <Search className="size-4" />
+          <Search className="size-4.5" />
         </button>
 
         <Link
           href="/notifications"
           aria-label="Notifications"
-          className="relative flex size-9 items-center justify-center rounded-xl border-2 border-black bg-white text-black shadow-[2px_2px_0px_#000] transition-transform hover:-translate-y-0.5 active:translate-y-0.5"
+          className="relative flex size-9 items-center justify-center rounded-full text-gray-600 transition-colors hover:bg-gray-100 hover:text-black"
         >
-          <Bell className="size-4" />
+          <Bell className="size-4.5" />
           {unreadCount > 0 && (
-            <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full border-2 border-black bg-[#FF4B72] text-[9px] font-black text-white">
-              {unreadCount}
-            </span>
+            <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-[#FF386B]" />
           )}
         </Link>
 
-        {/* User Pill from Image 1 Top Right */}
+        {/* User Profile Pill matching Mockup: 'PS' circle + dropdown chevron */}
         <Link
           href="/profile"
           aria-label="Your profile"
-          className="flex items-center gap-2 rounded-xl border-2 border-black bg-white px-2.5 py-1 text-black shadow-[2px_2px_0px_#000] transition-transform hover:-translate-y-0.5 active:translate-y-0.5"
+          className="flex items-center gap-1.5 rounded-full p-1 pl-1 pr-2 transition-colors hover:bg-gray-100"
         >
-          <div className="size-6 overflow-hidden rounded-full border border-black bg-[#FFE5EC]">
+          <div className="flex size-8 items-center justify-center overflow-hidden rounded-full bg-[#FFE8EE] text-xs font-bold text-[#FF386B]">
             {profile?.avatarUrl ? (
               <img
                 src={profile.avatarUrl}
@@ -99,17 +102,10 @@ export function TopNav() {
                 className="h-full w-full object-cover"
               />
             ) : (
-              <AvatarFallback className="bg-[#FFD23F] text-[10px] font-black text-black">
-                {profile?.displayName
-                  ? profile.displayName.split(" ").map((p) => p[0]).join("")
-                  : "P"}
-              </AvatarFallback>
+              <span>{initials}</span>
             )}
           </div>
-          <span className="hidden text-xs font-black text-black sm:inline truncate max-w-[90px]">
-            {profile?.displayName ?? "Resident"}
-          </span>
-          <ChevronDown className="hidden size-3 text-black sm:block" />
+          <ChevronDown className="size-3.5 text-gray-500" />
         </Link>
       </div>
     </header>

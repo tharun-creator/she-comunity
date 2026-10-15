@@ -33,16 +33,16 @@ export function ChennaiPgMap({ pgs, selectedPgId, onSelectPg, className }: Chenn
   const handleResetZoom = () => setZoom(1);
 
   return (
-    <div className={cn("relative flex h-[580px] w-full flex-col overflow-hidden rounded-2xl border-[2.5px] border-black bg-[#F4F1EA] shadow-[4px_4px_0px_#000]", className)}>
+    <div className={cn("relative flex h-[580px] w-full flex-col overflow-hidden rounded-2xl border border-[#F0E6E8] bg-[#FAF8F8] shadow-sm", className)}>
       {/* Map Header Bar */}
-      <div className="z-10 flex items-center justify-between border-b-2 border-black bg-white px-4 py-2.5">
+      <div className="z-10 flex items-center justify-between border-b border-[#F0E6E8] bg-white px-4 py-2.5">
         <div className="flex items-center gap-2">
-          <span className="flex size-7 items-center justify-center rounded-lg border-2 border-black bg-[#FFD23F] shadow-[1.5px_1.5px_0px_#000]">
-            <Navigation className="size-3.5 fill-black text-black" />
+          <span className="flex size-7 items-center justify-center rounded-full bg-[#FFE8EE] text-[#FF386B]">
+            <Navigation className="size-3.5 fill-[#FF386B] text-[#FF386B]" />
           </span>
           <div>
-            <h3 className="font-heading text-xs font-black uppercase tracking-wider text-black">Chennai PG Heatmap</h3>
-            <p className="text-[10px] font-bold text-gray-600">5 Major Hostels & Tech Corridor Hubs</p>
+            <h3 className="font-heading text-xs font-bold text-gray-900">Chennai PG Heatmap</h3>
+            <p className="text-[10px] text-gray-500">5 Major Hostels & Tech Corridor Hubs</p>
           </div>
         </div>
 
@@ -50,10 +50,10 @@ export function ChennaiPgMap({ pgs, selectedPgId, onSelectPg, className }: Chenn
           <button
             type="button"
             onClick={() => setMapStyle((s) => (s === "blueprint" ? "metro" : "blueprint"))}
-            className="inline-flex items-center gap-1.5 rounded-lg border-2 border-black bg-white px-2.5 py-1 text-xs font-bold text-black shadow-[2px_2px_0px_#000] transition-transform hover:-translate-y-0.5 active:translate-y-0.5"
+            className="inline-flex items-center gap-1.5 rounded-full border border-[#F0E6E8] bg-white px-3 py-1 text-xs font-bold text-gray-700 transition-colors hover:bg-gray-50"
             title="Toggle map view"
           >
-            <Layers className="size-3.5 text-black" />
+            <Layers className="size-3.5 text-gray-600" />
             <span className="hidden sm:inline">{mapStyle === "blueprint" ? "Metro View" : "Blueprint"}</span>
           </button>
         </div>
@@ -218,7 +218,7 @@ export function ChennaiPgMap({ pgs, selectedPgId, onSelectPg, className }: Chenn
         <button
           type="button"
           onClick={handleZoomIn}
-          className="flex size-8 items-center justify-center rounded-lg border-2 border-black bg-white font-black text-black shadow-[2px_2px_0px_#000] transition-transform hover:-translate-y-0.5 active:translate-y-0.5"
+          className="flex size-8 items-center justify-center rounded-full border border-gray-200 bg-white font-bold text-gray-700 shadow-xs transition-colors hover:bg-gray-50"
           aria-label="Zoom in"
         >
           <Plus className="size-4" />
@@ -226,7 +226,7 @@ export function ChennaiPgMap({ pgs, selectedPgId, onSelectPg, className }: Chenn
         <button
           type="button"
           onClick={handleZoomOut}
-          className="flex size-8 items-center justify-center rounded-lg border-2 border-black bg-white font-black text-black shadow-[2px_2px_0px_#000] transition-transform hover:-translate-y-0.5 active:translate-y-0.5"
+          className="flex size-8 items-center justify-center rounded-full border border-gray-200 bg-white font-bold text-gray-700 shadow-xs transition-colors hover:bg-gray-50"
           aria-label="Zoom out"
         >
           <Minus className="size-4" />
@@ -234,7 +234,7 @@ export function ChennaiPgMap({ pgs, selectedPgId, onSelectPg, className }: Chenn
         <button
           type="button"
           onClick={handleResetZoom}
-          className="flex size-8 items-center justify-center rounded-lg border-2 border-black bg-[#FFD23F] font-black text-[10px] text-black shadow-[2px_2px_0px_#000] transition-transform hover:-translate-y-0.5 active:translate-y-0.5"
+          className="flex size-8 items-center justify-center rounded-full bg-[#FFE8EE] font-bold text-[10px] text-[#FF386B] shadow-xs transition-colors hover:bg-[#FFD6E2]"
           aria-label="Reset zoom"
         >
           1x
@@ -244,25 +244,25 @@ export function ChennaiPgMap({ pgs, selectedPgId, onSelectPg, className }: Chenn
       {/* Bottom Quick-Preview Card when a PG pin is selected */}
       {selectedPg && (
         <div className="absolute inset-x-3 bottom-3 z-20 animate-in fade-in slide-in-from-bottom-2 duration-200">
-          <div className="flex items-center justify-between gap-3 rounded-xl border-2 border-black bg-white p-3 shadow-[4px_4px_0px_#000]">
+          <div className="flex items-center justify-between gap-3 rounded-2xl border border-[#F0E6E8] bg-white p-3.5 shadow-lg">
             <div className="flex items-center gap-3 min-w-0">
-              <span className="flex size-12 shrink-0 items-center justify-center rounded-lg border-2 border-black bg-[#FFE5EC] text-[#FF4B72]">
-                <Building2 className="size-6" />
+              <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#FFF0F3] text-[#FF386B]">
+                <Building2 className="size-5" />
               </span>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <h4 className="truncate font-heading text-sm font-black text-black">{selectedPg.name}</h4>
+                  <h4 className="truncate font-heading text-sm font-bold text-gray-900">{selectedPg.name}</h4>
                   {selectedPg.aggregateRating && (
-                    <span className="inline-flex shrink-0 items-center gap-0.5 rounded border border-black bg-[#FFD23F] px-1.5 py-0.5 text-[10px] font-black text-black">
-                      <Star className="size-3 fill-black text-black" />
+                    <span className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-[#FEF3C7] px-2 py-0.5 text-[10px] font-bold text-[#78350F]">
+                      <Star className="size-3 fill-[#F59E0B] text-[#F59E0B]" />
                       {selectedPg.aggregateRating.toFixed(1)}
                     </span>
                   )}
                 </div>
-                <p className="flex items-center gap-1 text-xs font-semibold text-gray-600 truncate">
-                  <MapPin className="size-3 shrink-0 text-[#FF4B72]" /> {selectedPg.area}
+                <p className="flex items-center gap-1 text-xs text-gray-500 truncate">
+                  <MapPin className="size-3 shrink-0 text-[#FF386B]" /> {selectedPg.area}
                 </p>
-                <div className="mt-1 flex items-center gap-3 text-[11px] font-bold text-gray-700">
+                <div className="mt-0.5 flex items-center gap-3 text-[11px] text-gray-500">
                   <span>{selectedPg.reviewCount} reviews</span>
                   <span>•</span>
                   <span>{selectedPg.memberCount} residents</span>
@@ -272,7 +272,7 @@ export function ChennaiPgMap({ pgs, selectedPgId, onSelectPg, className }: Chenn
 
             <Link
               href={`/pg/${selectedPg.id}`}
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border-2 border-black bg-[#FF4B72] px-3.5 py-2 text-xs font-black text-white shadow-[2px_2px_0px_#000] transition-transform hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_#000] active:translate-y-0.5 active:shadow-none"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[#FF386B] px-4 py-2 text-xs font-bold text-white shadow-xs transition-transform hover:scale-105 active:scale-95"
             >
               Open <ArrowUpRight className="size-4" />
             </Link>

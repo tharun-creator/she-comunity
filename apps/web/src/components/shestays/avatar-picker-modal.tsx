@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Check, Sparkles, X } from "lucide-react";
+import { Check, Sparkles } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -46,7 +46,7 @@ export function AvatarPickerModal({
   currentAvatarUrl,
 }: AvatarPickerModalProps) {
   const queryClient = useQueryClient();
-  const [selected, setSelected] = useState<string>(currentAvatarUrl || AVATAR_OPTIONS[0].src);
+  const [selected, setSelected] = useState<string>(currentAvatarUrl || AVATAR_OPTIONS[3].src);
 
   const mutation = useMutation({
     mutationFn: (avatarUrl: string) => updateProfileAvatar(avatarUrl),
@@ -64,22 +64,22 @@ export function AvatarPickerModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl rounded-2xl border-[3px] border-black bg-[#FFFDF9] p-6 shadow-[6px_6px_0px_#000]">
+      <DialogContent className="max-w-xl rounded-2xl border border-[#F0E6E8] bg-white p-6 shadow-xl">
         <DialogHeader>
-          <div className="inline-flex w-fit items-center gap-1.5 rounded-lg border-2 border-black bg-[#FFD23F] px-2 py-0.5 text-xs font-black uppercase text-black shadow-[1.5px_1.5px_0px_#000]">
-            <Sparkles className="size-3.5 fill-black" />
+          <div className="inline-flex w-fit items-center gap-1.5 rounded-full bg-[#FFE8EE] px-3 py-1 text-xs font-bold text-[#FF386B]">
+            <Sparkles className="size-3.5" />
             Personalize Your Identity
           </div>
-          <DialogTitle className="mt-2 font-heading text-xl font-black text-black">
+          <DialogTitle className="mt-2 font-heading text-xl font-bold text-gray-900">
             Choose Your Community Avatar
           </DialogTitle>
-          <DialogDescription className="text-xs font-bold text-gray-600">
-            Pick a flat illustration that best represents your style. This avatar will show on your profile and named reviews.
+          <DialogDescription className="text-xs text-gray-500">
+            Pick an illustration that best represents your style. This avatar will show on your profile and named reviews.
           </DialogDescription>
         </DialogHeader>
 
-        {/* 15 Avatars Neubrutalist Selection Grid */}
-        <div className="grid grid-cols-3 gap-3.5 py-4 sm:grid-cols-5 max-h-[360px] overflow-y-auto p-1 scrollbar-hide">
+        {/* 15 Avatars Selection Grid */}
+        <div className="grid grid-cols-3 gap-3 py-4 sm:grid-cols-5 max-h-[360px] overflow-y-auto p-1 [scrollbar-width:none]">
           {AVATAR_OPTIONS.map((av) => {
             const isChosen = selected === av.src;
             return (
@@ -88,13 +88,13 @@ export function AvatarPickerModal({
                 type="button"
                 onClick={() => setSelected(av.src)}
                 className={cn(
-                  "group relative flex flex-col items-center gap-1.5 rounded-xl border-2 border-black p-2 transition-all cursor-pointer",
+                  "group relative flex flex-col items-center gap-1.5 rounded-2xl border p-2 transition-all cursor-pointer",
                   isChosen
-                    ? "bg-[#FFE5EC] shadow-[3px_3px_0px_#FF4B72] ring-2 ring-black -translate-y-1"
-                    : "bg-white shadow-[2px_2px_0px_#000] hover:bg-gray-50 hover:-translate-y-0.5"
+                    ? "bg-[#FFE8EE] border-[#FF386B] ring-2 ring-[#FF386B] scale-102"
+                    : "bg-white border-[#F0E6E8] hover:bg-[#FAF8F8] hover:scale-102"
                 )}
               >
-                <div className="relative size-16 overflow-hidden rounded-full border-2 border-black bg-pink-50">
+                <div className="relative size-16 overflow-hidden rounded-full border border-[#FFE8EE] bg-[#FFF0F3]">
                   <Image
                     src={av.src}
                     alt={av.label}
@@ -103,14 +103,14 @@ export function AvatarPickerModal({
                     className="h-full w-full object-cover"
                   />
                   {isChosen && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-[1px]">
-                      <span className="flex size-6 items-center justify-center rounded-full border border-black bg-[#05D5A4] text-black">
-                        <Check className="size-4 stroke-[3]" />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-[0.5px]">
+                      <span className="flex size-6 items-center justify-center rounded-full bg-[#FF386B] text-white">
+                        <Check className="size-3.5 stroke-[3]" />
                       </span>
                     </div>
                   )}
                 </div>
-                <span className="truncate text-center text-[10px] font-black text-black max-w-[80px]">
+                <span className="truncate text-center text-[10px] font-bold text-gray-800 max-w-[80px]">
                   {av.label}
                 </span>
               </button>
@@ -118,11 +118,11 @@ export function AvatarPickerModal({
           })}
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-0 border-t-2 border-black/10 pt-4">
+        <DialogFooter className="gap-2 sm:gap-0 border-t border-[#F0E6E8] pt-4">
           <button
             type="button"
             onClick={() => onOpenChange(false)}
-            className="rounded-xl border-2 border-black bg-white px-4 py-2 text-xs font-black text-black shadow-[2px_2px_0px_#000] hover:bg-gray-100"
+            className="rounded-full border border-gray-200 bg-white px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
           >
             Cancel
           </button>
@@ -130,7 +130,7 @@ export function AvatarPickerModal({
             type="button"
             disabled={mutation.isPending}
             onClick={() => mutation.mutate(selected)}
-            className="inline-flex items-center gap-1.5 rounded-xl border-2 border-black bg-[#FF4B72] px-5 py-2 text-xs font-black text-white shadow-[2.5px_2.5px_0px_#000] transition-transform hover:-translate-y-0.5 active:translate-y-0.5 disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-full bg-[#FF386B] px-5 py-2 text-xs font-bold text-white shadow-sm transition-all hover:bg-[#E02657] disabled:opacity-50"
           >
             {mutation.isPending ? "Saving..." : "Set As Avatar"}
           </button>

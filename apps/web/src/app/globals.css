@@ -68,22 +68,22 @@
 }
 
 :root {
-  /* SheStays brand tokens — Neubrutalism ProMax */
-  --ss-primary: #FF4B72;
-  --ss-primary-hover: #E6395D;
-  --ss-primary-soft: #FFE5EC;
-  --ss-text-heading: #121212;
-  --ss-text-body: #1F2937;
-  --ss-text-muted: #4B5563;
-  --ss-background: #FFFDF9;
+  /* SheStays brand tokens — Soft Modern Premium Aesthetic */
+  --ss-primary: #FF386B;
+  --ss-primary-hover: #E02657;
+  --ss-primary-soft: #FFE8EE;
+  --ss-text-heading: #18181B;
+  --ss-text-body: #27272A;
+  --ss-text-muted: #71717A;
+  --ss-background: #FAF8F8;
   --ss-surface: #FFFFFF;
-  --ss-surface-soft: #FFF1F3;
-  --ss-border: #121212;
+  --ss-surface-soft: #FFF0F3;
+  --ss-border: #F0E6E8;
   --ss-blush: #FFEAEF;
   --ss-success: #05D5A4;
   --ss-danger: #EF4444;
-  --ss-warning: #FFD23F;
-  --ss-anonymous: #475569;
+  --ss-warning: #F59E0B;
+  --ss-anonymous: #64748B;
 
   /* shadcn semantic mapping onto the brand tokens above */
   --background: var(--ss-background);

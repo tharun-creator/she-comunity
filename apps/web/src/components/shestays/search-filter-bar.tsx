@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Search, MapPin, SlidersHorizontal, Map, LayoutGrid, Columns2, X, ChevronDown } from "lucide-react";
-import { CHENNAI_AREAS, type ChennaiArea } from "@/types/domain";
+import { CHENNAI_AREAS } from "@/types/domain";
 import { cn } from "@/lib/utils";
 
 export type ViewMode = "split" | "grid" | "map";
@@ -51,8 +51,8 @@ export function SearchFilterBar({
 
   return (
     <div className="mb-6 space-y-4">
-      {/* Category Pills (from Image 1 top bar) */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+      {/* Category Pills matching Mockup */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
         {CATEGORIES.map((cat) => {
           const isActive = activeCategory === cat;
           return (
@@ -61,10 +61,10 @@ export function SearchFilterBar({
               type="button"
               onClick={() => onCategoryChange(cat)}
               className={cn(
-                "inline-flex shrink-0 items-center rounded-xl border-2 border-black px-4 py-2 text-xs font-black transition-all duration-150",
+                "inline-flex shrink-0 items-center rounded-full px-4 py-2 text-xs font-bold transition-all",
                 isActive
-                  ? "bg-[#121212] text-white shadow-[2px_2px_0px_#000]"
-                  : "bg-white text-black shadow-[2px_2px_0px_#000] hover:bg-[#FFE5EC] hover:-translate-y-0.5 active:translate-y-0.5"
+                  ? "bg-[#FFE8EE] text-[#FF386B] border border-[#FCE4EC] shadow-xs"
+                  : "bg-white text-gray-700 border border-[#F0E6E8] hover:bg-[#FAF8F8] hover:text-black"
               )}
             >
               {cat}
@@ -73,17 +73,17 @@ export function SearchFilterBar({
         })}
       </div>
 
-      {/* Main Search Input & Controls (Image 1 Sub-header) */}
-      <div className="flex flex-col gap-3 rounded-2xl border-[2.5px] border-black bg-white p-3 shadow-[4px_4px_0px_#000] sm:p-4 md:flex-row md:items-center">
+      {/* Main Search Input & Controls */}
+      <div className="flex flex-col gap-3 rounded-2xl border border-[#F0E6E8] bg-white p-3 shadow-sm sm:p-4 md:flex-row md:items-center">
         {/* Search bar */}
         <div className="relative flex-1">
-          <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4.5 -translate-y-1/2 text-gray-500" />
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
           <input
             type="search"
             value={query}
             onChange={(e) => onQueryChange(e.target.value)}
             placeholder="Search PG in Sholinganallur, Velachery, Anna Nagar..."
-            className="w-full rounded-xl border-2 border-black bg-[#FFFDF9] py-2.5 pl-10 pr-10 text-sm font-bold text-black placeholder:font-medium placeholder:text-gray-400 focus:outline-none focus:ring-0 focus:border-[#FF4B72] focus:shadow-[2px_2px_0px_#000]"
+            className="w-full rounded-full border border-[#F0E6E8] bg-[#FAF8F8] py-2.5 pl-10 pr-10 text-xs sm:text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:bg-white focus:outline-none focus:border-[#FF386B]"
           />
           {query && (
             <button
@@ -101,25 +101,25 @@ export function SearchFilterBar({
           type="button"
           onClick={() => setFilterMenuOpen((prev) => !prev)}
           className={cn(
-            "inline-flex items-center justify-center gap-2 rounded-xl border-2 border-black px-4 py-2.5 text-xs font-black transition-transform shadow-[2px_2px_0px_#000] hover:-translate-y-0.5 active:translate-y-0.5",
-            filterMenuOpen ? "bg-[#FFD23F] text-black" : "bg-white text-black hover:bg-[#FFE5EC]"
+            "inline-flex items-center justify-center gap-2 rounded-full border border-[#F0E6E8] px-4 py-2.5 text-xs font-bold transition-colors",
+            filterMenuOpen ? "bg-[#FFE8EE] text-[#FF386B] border-[#FCE4EC]" : "bg-white text-gray-700 hover:bg-[#FAF8F8]"
           )}
         >
-          <SlidersHorizontal className="size-4" />
+          <SlidersHorizontal className="size-3.5" />
           <span>Filters</span>
           <ChevronDown className={cn("size-3.5 transition-transform", filterMenuOpen && "rotate-180")} />
         </button>
 
-        {/* View Mode Switcher: Grid vs Map vs Split (Image 1 right controls) */}
-        <div className="flex items-center gap-1 rounded-xl border-2 border-black bg-[#F4F1EA] p-1 shadow-[2px_2px_0px_#000]">
+        {/* View Mode Switcher: Grid vs Map vs Split */}
+        <div className="flex items-center gap-1 rounded-full border border-[#F0E6E8] bg-[#FAF8F8] p-1">
           <button
             type="button"
             onClick={() => onViewModeChange("split")}
             className={cn(
-              "hidden items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-bold transition-colors lg:inline-flex",
+              "hidden items-center gap-1 rounded-full px-3 py-1.5 text-xs font-bold transition-colors lg:inline-flex",
               viewMode === "split"
-                ? "border-2 border-black bg-white text-black shadow-[1px_1px_0px_#000]"
-                : "text-gray-600 hover:text-black"
+                ? "bg-white text-gray-900 shadow-xs"
+                : "text-gray-500 hover:text-gray-900"
             )}
             title="Split Grid & Map view"
           >
@@ -130,10 +130,10 @@ export function SearchFilterBar({
             type="button"
             onClick={() => onViewModeChange("grid")}
             className={cn(
-              "inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-bold transition-colors",
+              "inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-bold transition-colors",
               viewMode === "grid"
-                ? "border-2 border-black bg-white text-black shadow-[1px_1px_0px_#000]"
-                : "text-gray-600 hover:text-black"
+                ? "bg-white text-gray-900 shadow-xs"
+                : "text-gray-500 hover:text-gray-900"
             )}
             title="Grid view"
           >
@@ -144,10 +144,10 @@ export function SearchFilterBar({
             type="button"
             onClick={() => onViewModeChange("map")}
             className={cn(
-              "inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-bold transition-colors",
+              "inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-bold transition-colors",
               viewMode === "map"
-                ? "border-2 border-black bg-white text-black shadow-[1px_1px_0px_#000]"
-                : "text-gray-600 hover:text-black"
+                ? "bg-white text-gray-900 shadow-xs"
+                : "text-gray-500 hover:text-gray-900"
             )}
             title="Map view"
           >
@@ -159,57 +159,57 @@ export function SearchFilterBar({
 
       {/* Expandable Filter Details Row */}
       {filterMenuOpen && (
-        <div className="animate-in fade-in slide-in-from-top-2 duration-150 grid gap-3 rounded-2xl border-2 border-black bg-[#FFFDF9] p-4 shadow-[3px_3px_0px_#000] sm:grid-cols-3">
+        <div className="animate-in fade-in slide-in-from-top-2 duration-150 grid gap-3 rounded-2xl border border-[#F0E6E8] bg-white p-4 shadow-sm sm:grid-cols-3">
           {/* Area Selector */}
           <div>
-            <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-black">Area / Location</label>
+            <label className="mb-1.5 block text-xs font-bold text-gray-700">Area / Location</label>
             <div className="relative">
-              <MapPin className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#FF4B72]" />
+              <MapPin className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#FF386B]" />
               <select
                 value={selectedArea}
                 onChange={(e) => onAreaChange(e.target.value)}
-                className="w-full appearance-none rounded-xl border-2 border-black bg-white py-2 pl-9 pr-8 text-xs font-bold text-black focus:outline-none focus:shadow-[2px_2px_0px_#000]"
+                className="w-full appearance-none rounded-xl border border-[#F0E6E8] bg-[#FAF8F8] py-2 pl-9 pr-8 text-xs font-medium text-gray-900 focus:outline-none focus:border-[#FF386B]"
               >
                 <option value="All">All Chennai Areas</option>
                 {CHENNAI_AREAS.map((a) => (
                   <option key={a} value={a}>{a}</option>
                 ))}
               </select>
-              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-3.5 -translate-y-1/2 text-black" />
+              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-3.5 -translate-y-1/2 text-gray-400" />
             </div>
           </div>
 
           {/* Budget Range */}
           <div>
-            <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-black">Budget per Month</label>
+            <label className="mb-1.5 block text-xs font-bold text-gray-700">Budget per Month</label>
             <div className="relative">
               <select
                 value={selectedBudget}
                 onChange={(e) => onBudgetChange(e.target.value)}
-                className="w-full appearance-none rounded-xl border-2 border-black bg-white py-2 px-3 text-xs font-bold text-black focus:outline-none focus:shadow-[2px_2px_0px_#000]"
+                className="w-full appearance-none rounded-xl border border-[#F0E6E8] bg-[#FAF8F8] py-2 px-3 text-xs font-medium text-gray-900 focus:outline-none focus:border-[#FF386B]"
               >
                 {BUDGET_OPTIONS.map((b) => (
                   <option key={b} value={b}>{b}</option>
                 ))}
               </select>
-              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-3.5 -translate-y-1/2 text-black" />
+              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-3.5 -translate-y-1/2 text-gray-400" />
             </div>
           </div>
 
           {/* Sort By */}
           <div>
-            <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-black">Sort Results</label>
+            <label className="mb-1.5 block text-xs font-bold text-gray-700">Sort Results</label>
             <div className="relative">
               <select
                 value={selectedSort}
                 onChange={(e) => onSortChange(e.target.value)}
-                className="w-full appearance-none rounded-xl border-2 border-black bg-white py-2 px-3 text-xs font-bold text-black focus:outline-none focus:shadow-[2px_2px_0px_#000]"
+                className="w-full appearance-none rounded-xl border border-[#F0E6E8] bg-[#FAF8F8] py-2 px-3 text-xs font-medium text-gray-900 focus:outline-none focus:border-[#FF386B]"
               >
                 {SORT_OPTIONS.map((s) => (
                   <option key={s.value} value={s.value}>{s.label}</option>
                 ))}
               </select>
-              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-3.5 -translate-y-1/2 text-black" />
+              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-3.5 -translate-y-1/2 text-gray-400" />
             </div>
           </div>
         </div>
@@ -217,10 +217,10 @@ export function SearchFilterBar({
 
       {/* Header Results Summary */}
       <div className="flex items-center justify-between px-1">
-        <h2 className="font-heading text-lg font-black text-black">
+        <h2 className="font-heading text-base font-bold text-gray-900">
           {selectedArea === "All" ? "Chennai PGs for Women" : `PGs in ${selectedArea}`}
         </h2>
-        <span className="rounded-lg border-2 border-black bg-[#FFE5EC] px-2.5 py-0.5 text-xs font-black text-black shadow-[1.5px_1.5px_0px_#000]">
+        <span className="rounded-full bg-[#FFE8EE] px-3 py-0.5 text-xs font-bold text-[#FF386B]">
           {totalCount} {totalCount === 1 ? "community" : "communities"}
         </span>
       </div>
