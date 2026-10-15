@@ -7,6 +7,7 @@ import { AuthorLine } from "./anonymous-tag";
 import { VoteControl } from "./vote-control";
 import { AnonymousToggle } from "./anonymous-toggle";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetchCommentsForPost, createComment, fetchProfile } from "@/lib/api/adapters";
@@ -32,7 +33,7 @@ export function CommentThread({ postId }: { postId: string }) {
         body,
         author: isAnonymous
           ? { isAnonymous: true, anonymousTag: "Anonymous Resident" }
-          : { isAnonymous: false, displayName: profile?.displayName ?? "You" },
+          : { isAnonymous: false, displayName: profile?.displayName ?? "You", avatarUrl: profile?.avatarUrl },
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["comments", postId] });
@@ -117,24 +118,35 @@ function CommentNode({
   };
 
   return (
-    <div className={depth > 0 ? "ml-4 border-l border-border pl-4 sm:ml-6 sm:pl-5" : ""}>
-      <div className="flex gap-2.5">
-        <VoteControl
-          orientation="horizontal"
-          size="sm"
-          upvotes={votes.up}
-          downvotes={votes.down}
-          myVote={vote}
-          onVote={handleVote}
-        />
-      </div>
-      <div className="mt-1">
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <AuthorLine author={comment.author} />
-          <span aria-hidden>·</span>
-          <time dateTime={comment.createdAt}>{relativeTime(comment.createdAt)}</time>
+    <div className={depth > 0 ? "ml-4 border-l-2 border-black/15 pl-4 sm:ml-6 sm:pl-5" : ""}>
+      <div className="flex items-start gap-2.5">
+        <Avatar className="size-6 shrink-0 border border-black shadow-[1px_1px_0px_#000]">
+          {!comment.author.isAnonymous && comment.author.avatarUrl ? (
+            <AvatarImage src={comment.author.avatarUrl} alt={comment.author.displayName} />
+          ) : null}
+          <AvatarFallback className="bg-[#FFD23F] text-[9px] font-black text-black">
+            {comment.author.isAnonymous ? "?" : (comment.author.displayName ?? "?").slice(0, 2).toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 text-xs font-bold text-gray-500">
+            <AuthorLine author={comment.author} />
+            <span aria-hidden>·</span>
+            <time dateTime={comment.createdAt}>{relativeTime(comment.createdAt)}</time>
+          </div>
+          <p className="mt-1 text-sm font-medium text-black">{comment.body}</p>
+          <div className="mt-2 flex gap-2">
+            <VoteControl
+              orientation="horizontal"
+              size="sm"
+              upvotes={votes.up}
+              downvotes={votes.down}
+              myVote={vote}
+              onVote={handleVote}
+            />
+          </div>
         </div>
-        <p className="mt-1 text-sm text-body">{comment.body}</p>
       </div>
       {children.length > 0 && (
         <div className="mt-3 space-y-3">

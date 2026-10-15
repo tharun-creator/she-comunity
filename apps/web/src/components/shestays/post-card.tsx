@@ -11,7 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { AuthorLine } from "./anonymous-tag";
 import { RatingTagChip } from "./rating-tag-chip";
@@ -94,7 +94,10 @@ export function PostCard({ post, pgId, className }: { post: Post; pgId: string; 
   return (
     <article className={cn("rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5", className)}>
       <div className="flex items-center gap-2.5">
-        <Avatar className="size-8 shrink-0">
+        <Avatar className="size-8 shrink-0 border border-black/10">
+          {!post.author.isAnonymous && post.author.avatarUrl ? (
+            <AvatarImage src={post.author.avatarUrl} alt={post.author.displayName} />
+          ) : null}
           <AvatarFallback
             className={cn(
               "text-xs font-semibold",

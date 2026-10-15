@@ -10,6 +10,7 @@ const hoursAgo = (h: number) => new Date(now - h * 3600_000).toISOString();
 export const currentUser: UserProfile = {
   id: "u-me",
   displayName: "Priya S.",
+  avatarUrl: "/avatars/avatar-1.png",
   city: "Chennai",
   pgsLivedAt: ["pg-2"],
   savedPgIds: ["pg-1"],
@@ -87,7 +88,7 @@ const posts: Post[] = [
     title: "6 months in — honest review",
     body:
       "Been here since March. Warden is strict about the 9pm curfew but the building itself feels very safe — good lighting, CCTV at the gate. Food is average, lots of rice-heavy meals. Wifi is genuinely fast, better than my last place.",
-    author: { isAnonymous: false, displayName: "Divya R." },
+    author: { isAnonymous: false, displayName: "Divya R.", avatarUrl: "/avatars/avatar-3.png" },
     residencyClaim: "currently_here",
     ratingTags: { Safety: 5, Food: 3, Warden: 4, Wifi: 5, Curfew: 3 },
     overallRating: 4,
@@ -122,7 +123,7 @@ const posts: Post[] = [
     title: "Best time to visit the OMR area PGs before signing?",
     body:
       "Planning to shortlist a few PGs around Sholinganallur this weekend. Any tips on what to check in person that you can't tell from photos or reviews alone?",
-    author: { isAnonymous: false, displayName: "Sneha R." },
+    author: { isAnonymous: false, displayName: "Sneha R.", avatarUrl: "/avatars/avatar-6.png" },
     residencyClaim: "currently_here",
     topics: ["NewHere", "Tips"],
     upvotes: 12,
@@ -138,7 +139,7 @@ const posts: Post[] = [
     type: "poll",
     title: "Would you want a shared kitchen slot booking system?",
     body: "There have been fights over the induction stove in the evenings. Curious what people actually want.",
-    author: { isAnonymous: false, displayName: "Meena K." },
+    author: { isAnonymous: false, displayName: "Meena K.", avatarUrl: "/avatars/avatar-9.png" },
     pollOptions: [
       { id: "opt-1", label: "Yes, book a slot", voteCount: 12 },
       { id: "opt-2", label: "No, first-come works fine", voteCount: 4 },
@@ -204,7 +205,7 @@ const comments: Comment[] = [
     id: "c-2",
     postId: "post-2",
     parentCommentId: "c-1",
-    author: { isAnonymous: false, displayName: "Divya R." },
+    author: { isAnonymous: false, displayName: "Divya R.", avatarUrl: "/avatars/avatar-3.png" },
     body: "Good to know, thank you for flagging this. Did it actually stop after you spoke to them?",
     upvotes: 3,
     downvotes: 0,
@@ -483,4 +484,10 @@ export async function toggleSavePost(postId: string) {
 export async function reportContent(input: { targetType: "post" | "comment"; targetId: string; reason: string; detail?: string }) {
   await delay(300);
   return { ok: true, ...input };
+}
+
+export async function updateProfileAvatar(avatarUrl: string): Promise<UserProfile> {
+  await delay(150);
+  currentUser.avatarUrl = avatarUrl;
+  return { ...currentUser };
 }

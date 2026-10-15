@@ -28,3 +28,12 @@ export async function attestWoman(): Promise<UserProfile | null> {
 
   return apiClient.patch<UserProfile>("/users/me/attest", { attested: true });
 }
+
+export async function updateProfileAvatar(avatarUrl: string): Promise<UserProfile | null> {
+  if (!config.useLiveApi) {
+    const { updateProfileAvatar: mockUpdate } = await import("@/lib/mock-data");
+    return mockUpdate(avatarUrl);
+  }
+
+  return apiClient.patch<UserProfile>("/users/me", { avatar_url: avatarUrl });
+}

@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useState } from "react";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowUpRight, MapPin, MessageCircle, Search, Sparkles, UsersRound, ShieldCheck } from "lucide-react";
@@ -101,9 +102,23 @@ function HomeFeed() {
             </div>
           </div>
 
-          {/* Right Sticker Feature Card */}
-          <div className="relative hidden items-center justify-center p-6 lg:flex">
-            <div className="w-full max-w-sm rotate-1 rounded-2xl border-[2.5px] border-black bg-white p-5 shadow-[4px_4px_0px_#000]">
+          {/* Right Sticker Feature Card with Illustration */}
+          <div className="relative hidden flex-col items-center justify-center p-6 lg:flex">
+            <div className="relative mb-3 overflow-hidden rounded-2xl border-2 border-black bg-white p-3 shadow-[3px_3px_0px_#000]">
+              <Image
+                src="/illustrations/community-roommates.png"
+                alt="Women PG Community"
+                width={280}
+                height={160}
+                className="h-32 w-auto object-contain"
+                priority
+              />
+              <span className="absolute bottom-2 left-2 rounded-md border border-black bg-[#FFD23F] px-1.5 py-0.5 text-[10px] font-black text-black shadow-[1px_1px_0px_#000]">
+                Safe · Verified · Women-led
+              </span>
+            </div>
+
+            <div className="w-full max-w-sm rotate-1 rounded-2xl border-[2.5px] border-black bg-white p-4 shadow-[4px_4px_0px_#000]">
               <div className="flex items-center justify-between">
                 <span className="inline-flex items-center gap-1.5 rounded-md border border-black bg-[#FFD23F] px-2 py-0.5 text-xs font-black text-black">
                   <Sparkles className="size-3.5 fill-black" />
@@ -116,19 +131,19 @@ function HomeFeed() {
               
               {featuredStory ? (
                 <>
-                  <p className="mt-4 font-heading text-lg font-black leading-snug text-black">
+                  <p className="mt-3 font-heading text-base font-black leading-snug text-black">
                     “{featuredStory.title}”
                   </p>
-                  <p className="mt-2 line-clamp-3 text-xs font-bold text-gray-600">
+                  <p className="mt-1.5 line-clamp-2 text-xs font-bold text-gray-600">
                     {featuredStory.body}
                   </p>
-                  <div className="mt-4 flex items-center justify-between border-t-2 border-black/10 pt-3 text-xs font-bold">
+                  <div className="mt-3 flex items-center justify-between border-t-2 border-black/10 pt-2.5 text-xs font-bold">
                     <span className="rounded bg-[#FFE5EC] px-2 py-0.5 text-[#FF4B72]">{featuredStory.pgName}</span>
                     <span className="text-gray-500">{featuredStory.pgArea}</span>
                   </div>
                 </>
               ) : (
-                <p className="mt-4 font-heading text-base font-black text-black">Community reviews are arriving daily.</p>
+                <p className="mt-3 font-heading text-sm font-black text-black">Community reviews are arriving daily.</p>
               )}
             </div>
           </div>
@@ -177,17 +192,23 @@ function HomeFeed() {
         ))}
         {visibleFeed?.length === 0 && (
           <div className="rounded-2xl border-[2.5px] border-black bg-white p-8 text-center shadow-[4px_4px_0px_#000]">
-            <span className="mx-auto flex size-12 items-center justify-center rounded-xl border-2 border-black bg-[#FFE5EC] text-[#FF4B72]">
-              <MessageCircle className="size-6" />
-            </span>
-            <h3 className="mt-4 font-heading text-lg font-black text-black">No posts in this category yet</h3>
+            <div className="mx-auto mb-3 flex w-36 items-center justify-center">
+              <Image
+                src="/illustrations/coffee-relax.png"
+                alt="Take a break"
+                width={140}
+                height={140}
+                className="h-28 w-28 object-contain"
+              />
+            </div>
+            <h3 className="font-heading text-lg font-black text-black">No posts in this category yet</h3>
             <p className="mx-auto mt-1 max-w-sm text-xs font-bold text-gray-600">
               Be the first to share an honest story or ask a question about your hostel.
             </p>
             <button
               type="button"
               onClick={openComposer}
-              className="mt-4 inline-flex items-center gap-1.5 rounded-xl border-2 border-black bg-[#FFD23F] px-4 py-2 text-xs font-black text-black shadow-[2px_2px_0px_#000]"
+              className="mt-4 inline-flex items-center gap-1.5 rounded-xl border-2 border-black bg-[#FFD23F] px-4 py-2 text-xs font-black text-black shadow-[2px_2px_0px_#000] hover:-translate-y-0.5 active:translate-y-0.5"
             >
               Share your story
             </button>

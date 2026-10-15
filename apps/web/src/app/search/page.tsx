@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -163,10 +164,16 @@ export default function SearchPage() {
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center rounded-2xl border-[2.5px] border-black bg-white p-8 text-center shadow-[4px_4px_0px_#000]">
-                <div className="flex size-14 items-center justify-center rounded-2xl border-2 border-black bg-[#FFE5EC] text-[#FF4B72] shadow-[2px_2px_0px_#000]">
-                  <SearchIcon className="size-7" />
+                <div className="mb-2">
+                  <Image
+                    src="/illustrations/search-binoculars.png"
+                    alt="Looking for PGs"
+                    width={130}
+                    height={130}
+                    className="h-28 w-28 object-contain"
+                  />
                 </div>
-                <h3 className="mt-4 font-heading text-lg font-black text-black">
+                <h3 className="mt-2 font-heading text-lg font-black text-black">
                   {isSearching ? `No PGs found for “${query}”` : "No communities listed in this area"}
                 </h3>
                 <p className="mt-1 max-w-sm text-xs font-bold text-gray-600">
@@ -175,7 +182,7 @@ export default function SearchPage() {
                 <button
                   type="button"
                   onClick={() => openCreatePg(query)}
-                  className="mt-4 inline-flex items-center gap-1.5 rounded-xl border-2 border-black bg-[#FFD23F] px-4 py-2 text-xs font-black text-black shadow-[2.5px_2.5px_0px_#000] hover:-translate-y-0.5 active:translate-y-0.5"
+                  className="mt-4 inline-flex items-center gap-1.5 rounded-xl border-2 border-black bg-[#FFD23F] px-4 py-2 text-xs font-black text-black shadow-[2.5px_2.5px_0px_#000] transition-transform hover:-translate-y-0.5 active:translate-y-0.5"
                 >
                   <Plus className="size-4" /> Add this PG now
                 </button>
@@ -219,12 +226,23 @@ export default function SearchPage() {
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center rounded-2xl border-[2.5px] border-black bg-white p-8 text-center shadow-[4px_4px_0px_#000]">
-              <SearchIcon className="size-8 text-gray-400" />
-              <h3 className="mt-3 font-heading text-lg font-black text-black">No PGs found</h3>
+              <div className="mb-2">
+                <Image
+                  src="/illustrations/search-binoculars.png"
+                  alt="Looking for PGs"
+                  width={130}
+                  height={130}
+                  className="h-28 w-28 object-contain"
+                />
+              </div>
+              <h3 className="mt-2 font-heading text-lg font-black text-black">No PGs found</h3>
+              <p className="mt-1 max-w-sm text-xs font-bold text-gray-600">
+                Try searching for a different area or keyword.
+              </p>
               <button
                 type="button"
                 onClick={() => openCreatePg(query)}
-                className="mt-4 rounded-xl border-2 border-black bg-[#FFD23F] px-4 py-2 text-xs font-black text-black shadow-[2px_2px_0px_#000]"
+                className="mt-4 rounded-xl border-2 border-black bg-[#FFD23F] px-4 py-2 text-xs font-black text-black shadow-[2px_2px_0px_#000] transition-transform hover:-translate-y-0.5 active:translate-y-0.5"
               >
                 Add PG
               </button>

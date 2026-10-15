@@ -91,13 +91,21 @@ export function TopNav() {
           aria-label="Your profile"
           className="flex items-center gap-2 rounded-xl border-2 border-black bg-white px-2.5 py-1 text-black shadow-[2px_2px_0px_#000] transition-transform hover:-translate-y-0.5 active:translate-y-0.5"
         >
-          <Avatar className="size-6 border border-black">
-            <AvatarFallback className="bg-[#FFD23F] text-[10px] font-black text-black">
-              {profile?.displayName
-                ? profile.displayName.split(" ").map((p) => p[0]).join("")
-                : "P"}
-            </AvatarFallback>
-          </Avatar>
+          <div className="size-6 overflow-hidden rounded-full border border-black bg-[#FFE5EC]">
+            {profile?.avatarUrl ? (
+              <img
+                src={profile.avatarUrl}
+                alt="Avatar"
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <AvatarFallback className="bg-[#FFD23F] text-[10px] font-black text-black">
+                {profile?.displayName
+                  ? profile.displayName.split(" ").map((p) => p[0]).join("")
+                  : "P"}
+              </AvatarFallback>
+            )}
+          </div>
           <span className="hidden text-xs font-black text-black sm:inline truncate max-w-[90px]">
             {profile?.displayName ?? "Resident"}
           </span>
