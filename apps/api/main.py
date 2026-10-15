@@ -11,7 +11,7 @@ from app.middleware.logging import StructuredLoggingMiddleware
 from app.middleware.ratelimit import RateLimitMiddleware
 from app.middleware.security_headers import SecurityHeadersMiddleware
 from app.middleware.sentry import init_sentry
-from app.routers import pg, post, comment, vote, report, notification, user, health, admin
+from app.routers import pg, post, comment, vote, report, notification, user, health, admin, upload
 
 
 @asynccontextmanager
@@ -59,6 +59,7 @@ app.include_router(report.router, prefix="/api/v1", tags=["reports"])
 app.include_router(notification.router, prefix="/api/v1", tags=["notifications"])
 app.include_router(user.router, prefix="/api/v1", tags=["users"])
 app.include_router(admin.router, prefix="/api/v1", tags=["admin"])
+app.include_router(upload.router, prefix="/api/v1", tags=["uploads"])
 
 
 @app.exception_handler(AppError)

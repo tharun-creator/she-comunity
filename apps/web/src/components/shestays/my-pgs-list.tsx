@@ -38,7 +38,7 @@ export function MyPgsList() {
               key={pg.id}
               href={`/pg/${pg.id}`}
               className={cn(
-                "flex items-center gap-2.5 rounded-lg px-1 py-1.5 text-sm transition-colors",
+            "flex min-h-11 items-center gap-2.5 rounded-lg px-1 py-1.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
                 active ? "bg-primary-soft text-primary-hover font-medium" : "text-body hover:bg-muted"
               )}
             >
@@ -61,7 +61,7 @@ export function MyPgsList() {
           </p>
         )}
         {pgs && pgs.length > 0 && (
-          <Link href="/profile" className="block px-1 pt-1 text-xs font-medium text-muted-foreground hover:text-primary">
+          <Link href="/profile" className="flex min-h-11 items-center px-1 text-xs font-medium text-muted-foreground hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
             View all ({pgs.length})
           </Link>
         )}

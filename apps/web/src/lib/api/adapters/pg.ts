@@ -1,7 +1,7 @@
 import { config } from "@/lib/config";
 import { apiClient } from "../client";
-import type { Pg } from "@/types/domain";
-import type { Post } from "@/types/domain";
+import type { Pg, Post } from "@/types/domain";
+import type { FeedPost } from "@/lib/mock-data";
 import type { ChennaiArea } from "@/types/domain";
 
 export async function fetchDiscoverFeed(area?: string): Promise<Pg[]> {
@@ -10,13 +10,9 @@ export async function fetchDiscoverFeed(area?: string): Promise<Pg[]> {
     return mockFetch(area as ChennaiArea | "All" | undefined);
   }
 
-  try {
-    const params = new URLSearchParams();
-    if (area && area !== "All") params.set("area", area);
-    return apiClient.get<Pg[]>(`/pgs?${params.toString()}`);
-  } catch {
-    return [];
-  }
+  const params = new URLSearchParams();
+  if (area && area !== "All") params.set("area", area);
+  return apiClient.get<Pg[]>(`/pgs?${params.toString()}`);
 }
 
 export async function searchPgs(query: string): Promise<Pg[]> {
@@ -27,11 +23,7 @@ export async function searchPgs(query: string): Promise<Pg[]> {
 
   if (!query.trim()) return [];
 
-  try {
-    return apiClient.get<Pg[]>(`/pgs/search?q=${encodeURIComponent(query)}`);
-  } catch {
-    return [];
-  }
+  return apiClient.get<Pg[]>(`/pgs/search?q=${encodeURIComponent(query)}`);
 }
 
 export async function fetchPg(id: string): Promise<Pg | null> {
@@ -40,11 +32,7 @@ export async function fetchPg(id: string): Promise<Pg | null> {
     return mockFetch(id);
   }
 
-  try {
-    return apiClient.get<Pg>(`/pgs/${id}`);
-  } catch {
-    return null;
-  }
+  return apiClient.get<Pg>(`/pgs/${id}`);
 }
 
 export async function fetchPgsByIds(ids: string[]): Promise<Pg[]> {
@@ -55,13 +43,8 @@ export async function fetchPgsByIds(ids: string[]): Promise<Pg[]> {
 
   if (ids.length === 0) return [];
 
-  try {
-    // Fetch each PG individually (could be optimized with batch endpoint later)
-    const results = await Promise.all(ids.map(id => apiClient.get<Pg>(`/pgs/${id}`).catch(() => null)));
-    return results.filter((p): p is Pg => p !== null);
-  } catch {
-    return [];
-  }
+  // Fetch each PG individually (could be optimized with batch endpoint later).
+  return Promise.all(ids.map(id => apiClient.get<Pg>(`/pgs/${id}`)));
 }
 
 export async function fetchPostsForPg(pgId: string, sort: "new" | "top" | "discussed" = "new"): Promise<Post[]> {
@@ -70,11 +53,7 @@ export async function fetchPostsForPg(pgId: string, sort: "new" | "top" | "discu
     return mockFetch(pgId, sort);
   }
 
-  try {
-    return apiClient.get<Post[]>(`/pgs/${pgId}/posts?sort=${sort}`);
-  } catch {
-    return [];
-  }
+  return apiClient.get<Post[]>(`/pgs/${pgId}/posts?sort=${sort}`);
 }
 
 export async function fetchNearbyPgs(excludeJoinedIds: string[] = []): Promise<Pg[]> {
@@ -83,15 +62,11 @@ export async function fetchNearbyPgs(excludeJoinedIds: string[] = []): Promise<P
     return mockFetch(excludeJoinedIds);
   }
 
-  try {
-    const params = new URLSearchParams();
-    if (excludeJoinedIds.length > 0) {
-      params.set("exclude", excludeJoinedIds.join(","));
-    }
-    return apiClient.get<Pg[]>(`/pgs/nearby?${params.toString()}`);
-  } catch {
-    return [];
+  const params = new URLSearchParams();
+  if (excludeJoinedIds.length > 0) {
+    params.set("exclude", excludeJoinedIds.join(","));
   }
+  return apiClient.get<Pg[]>(`/pgs/nearby?${params.toString()}`);
 }
 
 export async function fetchSuggestedPgs(excludeJoinedIds: string[] = []): Promise<Pg[]> {
@@ -100,15 +75,11 @@ export async function fetchSuggestedPgs(excludeJoinedIds: string[] = []): Promis
     return mockFetch(excludeJoinedIds);
   }
 
-  try {
-    const params = new URLSearchParams();
-    if (excludeJoinedIds.length > 0) {
-      params.set("exclude", excludeJoinedIds.join(","));
-    }
-    return apiClient.get<Pg[]>(`/pgs/suggested?${params.toString()}`);
-  } catch {
-    return [];
+  const params = new URLSearchParams();
+  if (excludeJoinedIds.length > 0) {
+    params.set("exclude", excludeJoinedIds.join(","));
   }
+  return apiClient.get<Pg[]>(`/pgs/suggested?${params.toString()}`);
 }
 
 export async function fetchJoinedPgs(): Promise<Pg[]> {
@@ -117,11 +88,7 @@ export async function fetchJoinedPgs(): Promise<Pg[]> {
     return mockFetch();
   }
 
-  try {
-    return apiClient.get<Pg[]>("/users/me/pgs");
-  } catch {
-    return [];
-  }
+  return apiClient.get<Pg[]>("/users/me/pgs");
 }
 
 export async function joinPg(pgId: string): Promise<{ pg_id: string; pg_name: string; area: string; joined_at: string } | null> {
@@ -130,11 +97,7 @@ export async function joinPg(pgId: string): Promise<{ pg_id: string; pg_name: st
     return mockFetch(pgId) as unknown as Promise<{ pg_id: string; pg_name: string; area: string; joined_at: string } | null>;
   }
 
-  try {
-    return apiClient.post<{ pg_id: string; pg_name: string; area: string; joined_at: string }>(`/pgs/${pgId}/join`);
-  } catch {
-    return null;
-  }
+  return apiClient.post<{ pg_id: string; pg_name: string; area: string; joined_at: string }>(`/pgs/${pgId}/join`);
 }
 
 export async function fetchTrendingDiscussions(): Promise<Post[]> {
@@ -143,26 +106,33 @@ export async function fetchTrendingDiscussions(): Promise<Post[]> {
     return mockFetch() as unknown as Promise<Post[]>;
   }
 
-  try {
-    return apiClient.get<Post[]>("/posts/trending");
-  } catch {
-    return [];
-  }
+  return apiClient.get<Post[]>("/posts/trending");
 }
 
-export async function fetchHomeFeed(area?: string): Promise<Post[]> {
+export async function fetchHomeFeed(area?: string): Promise<FeedPost[]> {
   if (!config.useLiveApi) {
     const { fetchHomeFeed: mockFetch } = await import("@/lib/mock-data");
     return mockFetch(area as ChennaiArea | "All" | undefined);
   }
 
-  try {
-    const params = new URLSearchParams();
-    if (area && area !== "All") params.set("area", area);
-    return apiClient.get<Post[]>(`/posts/home-feed?${params.toString()}`);
-  } catch {
-    return [];
-  }
+  const params = new URLSearchParams();
+  if (area && area !== "All") params.set("area", area);
+  const posts = await apiClient.get<Post[]>(`/posts/home-feed?${params.toString()}`);
+  const pgIds = [...new Set(posts.map((post) => post.pgId))];
+  const pgs = await fetchPgsByIds(pgIds);
+  const pgById = new Map(pgs.map((pg) => [pg.id, pg]));
+
+  return posts.map((post) => {
+    const pg = pgById.get(post.pgId);
+    if (!pg) throw new Error(`Missing community details for post ${post.id}`);
+    return {
+      ...post,
+      pgName: pg.name,
+      pgArea: pg.area,
+      topComment: null,
+      isCommunityPost: false,
+    };
+  });
 }
 
 export async function createPg(input: { name: string; area: ChennaiArea; address?: string }): Promise<Pg | null> {
@@ -171,9 +141,5 @@ export async function createPg(input: { name: string; area: ChennaiArea; address
     return mockCreate(input);
   }
 
-  try {
-    return apiClient.post<Pg>("/pgs", input);
-  } catch {
-    return null;
-  }
+  return apiClient.post<Pg>("/pgs", input);
 }

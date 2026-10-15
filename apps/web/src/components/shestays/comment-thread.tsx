@@ -37,7 +37,7 @@ export function CommentThread({ postId }: { postId: string }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["comments", postId] });
       setBody("");
-      toast.success("Comment posted");
+      toast.success("Comment shared", { description: "Your neighbors can reply to your story." });
     },
     onError: () => toast.error("Couldn't post your comment — try again."),
   });

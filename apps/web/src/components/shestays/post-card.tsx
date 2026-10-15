@@ -21,7 +21,7 @@ import type { Post, RatingTag } from "@/types/domain";
 import { cn } from "@/lib/utils";
 import { relativeTime } from "@/lib/format";
 
-export function PostCard({ post, pgId }: { post: Post; pgId: string }) {
+export function PostCard({ post, pgId, className }: { post: Post; pgId: string; className?: string }) {
   const queryClient = useQueryClient();
   const [reportOpen, setReportOpen] = useState(false);
   const isLiked = post.myVote === 1;
@@ -62,7 +62,9 @@ export function PostCard({ post, pgId }: { post: Post; pgId: string }) {
     mutationFn: () => toggleSavePost(post.id),
     onSuccess: (updated) => {
       patchPostEverywhere(() => updated);
-      toast.success(updated.isSaved ? "Saved" : "Removed from saved");
+      toast.success(updated.isSaved ? "Saved for later" : "Removed from saved posts", {
+        description: updated.isSaved ? "Find this story in your saved posts anytime." : "This story is no longer in your saved list.",
+      });
     },
   });
 
@@ -90,7 +92,7 @@ export function PostCard({ post, pgId }: { post: Post; pgId: string }) {
   const roleLabel = post.author.isAnonymous ? "Anonymous" : post.residencyClaim ? "Resident" : null;
 
   return (
-    <article className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+    <article className={cn("rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5", className)}>
       <div className="flex items-center gap-2.5">
         <Avatar className="size-8 shrink-0">
           <AvatarFallback
@@ -118,22 +120,21 @@ export function PostCard({ post, pgId }: { post: Post; pgId: string }) {
           <time dateTime={post.createdAt} className="text-muted-foreground">
             {relativeTime(post.createdAt)}
           </time>
-          {post.type !== "discussion" && (
-            <span
-              className={cn(
-                "rounded-full px-2 py-0.5 text-[11px] font-medium",
-                post.type === "review" && "bg-primary-soft text-primary-hover",
-                post.type === "poll" && "bg-secondary text-secondary-foreground"
-              )}
-            >
-              {post.type === "review" ? "Review" : "Poll"}
-            </span>
-          )}
+          <span
+            className={cn(
+              "rounded-full px-2.5 py-1 text-[11px] font-semibold",
+              post.type === "review" && "bg-primary-soft text-primary-hover",
+              post.type === "discussion" && "bg-secondary text-secondary-foreground",
+              post.type === "poll" && "bg-warning/15 text-heading"
+            )}
+          >
+            {post.type === "review" ? "Resident review" : post.type === "discussion" ? "Conversation" : "Quick poll"}
+          </span>
         </div>
 
         <DropdownMenu>
           <DropdownMenuTrigger
-            className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "ml-auto size-8 text-muted-foreground")}
+            className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "ml-auto size-11 text-muted-foreground")}
           >
             <MoreHorizontal className="size-4" />
           </DropdownMenuTrigger>
@@ -146,10 +147,10 @@ export function PostCard({ post, pgId }: { post: Post; pgId: string }) {
         </DropdownMenu>
       </div>
 
-      <Link href={`/pg/${pgId}/post/${post.id}`} className="mt-2.5 block">
-        <h3 className="font-heading text-base font-semibold text-heading hover:text-primary">{post.title}</h3>
+      <Link href={`/pg/${pgId}/post/${post.id}`} className="mt-3 block rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+        <h3 className="font-heading text-lg font-semibold leading-snug text-heading text-balance transition-colors hover:text-primary sm:text-xl">{post.title}</h3>
       </Link>
-      <p className="mt-1 line-clamp-3 text-sm text-body">{post.body}</p>
+      <p className="mt-2 line-clamp-4 text-sm leading-6 text-body text-pretty">{post.body}</p>
 
       {post.imageUrl && (
         // eslint-disable-next-line @next/next/no-img-element -- client-side object URL, not an optimizable remote asset
@@ -186,7 +187,7 @@ export function PostCard({ post, pgId }: { post: Post; pgId: string }) {
           {post.topics.map((topic) => (
             <span
               key={topic}
-              className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground"
+              className="rounded-full bg-secondary px-2.5 py-1.5 text-xs font-medium text-secondary-foreground"
             >
               #{topic}
             </span>
@@ -211,7 +212,7 @@ export function PostCard({ post, pgId }: { post: Post; pgId: string }) {
                 }}
                 aria-pressed={isMyVote}
                 className={cn(
-                  "relative block w-full overflow-hidden rounded-lg border text-left",
+                "relative block min-h-11 w-full overflow-hidden rounded-lg border text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
                   isMyVote ? "border-primary" : "border-border",
                   !hasVoted && "cursor-pointer hover:border-primary/60"
                 )}
@@ -219,7 +220,7 @@ export function PostCard({ post, pgId }: { post: Post; pgId: string }) {
                 {hasVoted && (
                   <div className="absolute inset-y-0 left-0 bg-primary-soft" style={{ width: `${pct}%` }} aria-hidden />
                 )}
-                <div className="relative flex items-center justify-between px-3 py-1.5 text-sm">
+                <div className="relative flex min-h-11 items-center justify-between px-3 py-1.5 text-sm">
                   <span className="inline-flex items-center gap-1.5">
                     {isMyVote ? (
                       <Check className="size-3.5 text-primary" />
@@ -245,7 +246,7 @@ export function PostCard({ post, pgId }: { post: Post; pgId: string }) {
         <Button
           variant="ghost"
           size="sm"
-          className={cn("h-8 gap-1.5", isLiked ? "text-danger" : "text-muted-foreground")}
+          className={cn("min-h-11 gap-1.5 px-2", isLiked ? "text-danger" : "text-muted-foreground")}
           onClick={() => likeMutation.mutate()}
           aria-pressed={isLiked}
         >
@@ -253,7 +254,7 @@ export function PostCard({ post, pgId }: { post: Post; pgId: string }) {
           {post.upvotes}
         </Button>
         <Link href={`/pg/${pgId}/post/${post.id}`}>
-          <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-muted-foreground">
+          <Button variant="ghost" size="sm" className="min-h-11 gap-1.5 px-2 text-muted-foreground">
             <MessageCircle className="size-4" />
             {post.commentCount}
           </Button>
@@ -261,7 +262,7 @@ export function PostCard({ post, pgId }: { post: Post; pgId: string }) {
         <Button
           variant="ghost"
           size="sm"
-          className={cn("h-8 gap-1.5", post.isSaved ? "text-primary" : "text-muted-foreground")}
+          className={cn("min-h-11 gap-1.5 px-2", post.isSaved ? "text-primary" : "text-muted-foreground")}
           onClick={() => saveMutation.mutate()}
         >
           <Bookmark className={cn("size-4", post.isSaved && "fill-current")} />

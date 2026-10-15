@@ -1,4 +1,5 @@
-import { config } from "@/lib/config";
+import { config } from "../config";
+import { createClient } from "../supabase/client";
 
 interface RequestOptions extends RequestInit {
   params?: Record<string, string>;
@@ -12,31 +13,40 @@ class ApiClient {
   }
 
   private buildUrl(path: string, params?: Record<string, string>): string {
-    const url = new URL(path, this.baseUrl);
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        url.searchParams.append(key, value);
-      });
-    }
-    return url.toString();
+    const normalizedBase = this.baseUrl.replace(/\/+$/, "");
+    const normalizedPath = path.replace(/^\/+/, "");
+    const url = `${normalizedBase}/${normalizedPath}`;
+
+    if (!params || Object.keys(params).length === 0) return url;
+
+    const query = new URLSearchParams(params);
+    return `${url}${url.includes("?") ? "&" : "?"}${query.toString()}`;
   }
 
   private async request<T>(path: string, options: RequestOptions = {}): Promise<T> {
     const { params, headers, ...fetchOptions } = options;
     const url = this.buildUrl(path, params);
 
+    const requestHeaders = new Headers(headers);
+    if (!requestHeaders.has("Content-Type")) {
+      requestHeaders.set("Content-Type", "application/json");
+    }
+
+    const { data: { session } } = await createClient().auth.getSession();
+    if (session?.access_token) {
+      requestHeaders.set("Authorization", `Bearer ${session.access_token}`);
+    }
+
     const response = await fetch(url, {
       ...fetchOptions,
-      headers: {
-        "Content-Type": "application/json",
-        ...headers,
-      },
+      headers: requestHeaders,
       credentials: "include",
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: "Request failed" }));
-      throw new Error(error.message || `HTTP ${response.status}`);
+      const error = await response.json().catch(() => null);
+      const message = error?.error?.message || error?.message || `HTTP ${response.status}`;
+      throw new Error(`${message} (HTTP ${response.status})`);
     }
 
     if (response.status === 204) {

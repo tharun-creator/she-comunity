@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ImageIcon, Link2, BarChart3 } from "lucide-react";
+import { ImageIcon, Link2, BarChart3, Feather } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { PgPickerDialog } from "./pg-picker-dialog";
@@ -19,7 +19,7 @@ export function InlineComposer() {
   };
 
   return (
-    <div className="mb-4 rounded-2xl border border-border bg-card p-3.5">
+    <div className="mb-5 rounded-[1.5rem] border border-border bg-card p-4 shadow-[0_12px_32px_-28px_rgba(8,24,40,0.5)] sm:p-5">
       <div className="flex items-center gap-2.5">
         <Avatar className="size-8 shrink-0">
           <AvatarFallback className="bg-primary-soft text-xs font-semibold text-primary-hover">
@@ -30,31 +30,32 @@ export function InlineComposer() {
           </AvatarFallback>
         </Avatar>
         <button
+          id="story-composer-trigger"
           type="button"
           onClick={() => openPicker()}
-          className="flex-1 truncate rounded-full border border-border bg-secondary/40 px-4 py-2 text-left text-sm text-muted-foreground hover:bg-secondary/70"
+          className="min-h-12 min-w-0 flex-1 truncate rounded-full border border-border bg-background px-4 py-2.5 text-left text-sm text-muted-foreground transition-colors hover:border-primary/30 hover:bg-primary-soft/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
-          Share something with your community…
+          What do you wish you knew before moving here?
         </button>
       </div>
 
-      <div className="mt-3 flex items-center justify-between">
-        <div className="flex items-center gap-1">
-          <Button variant="ghost" size="sm" className="h-7 gap-1.5 text-xs text-muted-foreground" onClick={() => openPicker("image")}>
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-border/70 pt-3">
+        <div className="flex flex-wrap items-center gap-1">
+          <Button variant="ghost" size="sm" className="min-h-11 gap-1.5 rounded-full px-3 text-xs text-muted-foreground" onClick={() => openPicker("image")}>
             <ImageIcon className="size-3.5" />
             Image
           </Button>
-          <Button variant="ghost" size="sm" className="h-7 gap-1.5 text-xs text-muted-foreground" onClick={() => openPicker("link")}>
+          <Button variant="ghost" size="sm" className="min-h-11 gap-1.5 rounded-full px-3 text-xs text-muted-foreground" onClick={() => openPicker("link")}>
             <Link2 className="size-3.5" />
             Link
           </Button>
-          <Button variant="ghost" size="sm" className="h-7 gap-1.5 text-xs text-muted-foreground" onClick={() => openPicker("poll")}>
+          <Button variant="ghost" size="sm" className="min-h-11 gap-1.5 rounded-full px-3 text-xs text-muted-foreground" onClick={() => openPicker("poll")}>
             <BarChart3 className="size-3.5" />
             Poll
           </Button>
         </div>
-        <Button size="sm" onClick={() => openPicker()}>
-          Create post
+        <Button size="sm" className="min-h-11 gap-2 rounded-full px-4" onClick={() => openPicker()}>
+          <Feather className="size-4" /> Share a story
         </Button>
       </div>
 

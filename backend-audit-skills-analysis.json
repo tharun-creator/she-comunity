@@ -1,0 +1,438 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Backend Audit Skills Ecosystem",
+    "subtitle": "Relationships, Coverage Areas, and Project-Type Applicability",
+    "output": "backend-audit-skills.html"
+  },
+  "layout": {
+    "mode": "grid",
+    "cols": 8,
+    "origin": [40, 100],
+    "gapX": 32,
+    "gapY": 56,
+    "cellW": 140,
+    "cellH": 70
+  },
+  "components": [
+    {
+      "id": "security-review",
+      "type": "security",
+      "label": "Security Review",
+      "sublabel": "OWASP Top 10,\nAuthZ, Input Val",
+      "row": 1,
+      "col": 1
+    },
+    {
+      "id": "production-audit",
+      "type": "backend",
+      "label": "Production Audit",
+      "sublabel": "Ship/Block Decision,\nRisk Lenses",
+      "row": 1,
+      "col": 2
+    },
+    {
+      "id": "security-bounty-hunter",
+      "type": "security",
+      "label": "Bounty Hunter",
+      "sublabel": "Exploitable Paths,\nRCE/SSRF/SQLi",
+      "row": 1,
+      "col": 3
+    },
+    {
+      "id": "security-scan",
+      "type": "security",
+      "label": "Config Scan",
+      "sublabel": "AgentShield,\nClaude Config",
+      "row": 1,
+      "col": 4
+    },
+    {
+      "id": "security-best-practices",
+      "type": "security",
+      "label": "Security\nBest Practices",
+      "sublabel": "Headers, CSP,\nSecrets, XSS",
+      "row": 2,
+      "col": 1,
+      "size": [160, 70]
+    },
+    {
+      "id": "api-error-handling",
+      "type": "backend",
+      "label": "API Error\nHandling",
+      "sublabel": "Error Envelope,\nTyped Errors",
+      "row": 2,
+      "col": 2
+    },
+    {
+      "id": "rest-api-development",
+      "type": "backend",
+      "label": "REST API\nDev",
+      "sublabel": "Routing, Status\nCodes, Versioning",
+      "row": 2,
+      "col": 3,
+      "size": [140, 65]
+    },
+    {
+      "id": "authentication-systems",
+      "type": "security",
+      "label": "Auth Systems",
+      "sublabel": "JWT, RBAC,\nSession Mgmt",
+      "row": 2,
+      "col": 4
+    },
+    {
+      "id": "postgres-patterns",
+      "type": "database",
+      "label": "PostgreSQL\nPatterns",
+      "sublabel": "Indexes, RLS,\nUPSERT, Pagination",
+      "row": 3,
+      "col": 1
+    },
+    {
+      "id": "mysql-patterns",
+      "type": "database",
+      "label": "MySQL\nPatterns",
+      "sublabel": "Upsert, Keyset\nPagination, JSON",
+      "row": 3,
+      "col": 2
+    },
+    {
+      "id": "prisma-patterns",
+      "type": "database",
+      "label": "Prisma ORM\nPatterns",
+      "sublabel": "N+1, Transactions,\nServerless Pool",
+      "row": 3,
+      "col": 3
+    },
+    {
+      "id": "database-migrations",
+      "type": "database",
+      "label": "DB Migrations",
+      "sublabel": "Zero-Downtime,\nExpand-Contract",
+      "row": 3,
+      "col": 4
+    },
+    {
+      "id": "database-schema-design",
+      "type": "database",
+      "label": "Schema Design",
+      "sublabel": "3NF, FK Constraints,\nAudit Columns",
+      "row": 4,
+      "col": 1
+    },
+    {
+      "id": "redis-patterns",
+      "type": "database",
+      "label": "Redis Patterns",
+      "sublabel": "Cache, Rate Limit,\nDistributed Lock",
+      "row": 4,
+      "col": 2
+    },
+    {
+      "id": "error-handling",
+      "type": "backend",
+      "label": "Error Handling",
+      "sublabel": "Typed Errors,\nRetry, Circuit Breaker",
+      "row": 4,
+      "col": 3
+    },
+    {
+      "id": "performance-optimization",
+      "type": "backend",
+      "label": "Performance\nOpt",
+      "sublabel": "Bundle, DB, CLS,\nMemoization",
+      "row": 4,
+      "col": 4,
+      "size": [140, 65]
+    },
+    {
+      "id": "springboot-security",
+      "type": "security",
+      "label": "Spring Boot\nSec",
+      "sublabel": "JWT, @PreAuthorize,\nValidation, CSRF",
+      "row": 5,
+      "col": 1,
+      "size": [140, 65]
+    },
+    {
+      "id": "django-security",
+      "type": "security",
+      "label": "Django\nSecurity",
+      "sublabel": "CSRF, ORM Safety,\nHeaders, CSP",
+      "row": 5,
+      "col": 2
+    },
+    {
+      "id": "laravel-security",
+      "type": "security",
+      "label": "Laravel\nSecurity",
+      "sublabel": "Sanctum, Gates,\nMass Assignment",
+      "row": 5,
+      "col": 3
+    },
+    {
+      "id": "quarkus-security",
+      "type": "security",
+      "label": "Quarkus\nSecurity",
+      "sublabel": "JWT/OIDC, RBAC,\nValidation",
+      "row": 5,
+      "col": 4
+    },
+    {
+      "id": "kubernetes-patterns",
+      "type": "cloud",
+      "label": "Kubernetes\nPatterns",
+      "sublabel": "Deployments, Probes,\nRBAC, HPA, PDB",
+      "row": 6,
+      "col": 1
+    },
+    {
+      "id": "deployment-patterns",
+      "type": "cloud",
+      "label": "Deployment\nPatterns",
+      "sublabel": "Blue-Green, Canary,\nHealth Checks",
+      "row": 6,
+      "col": 2
+    },
+    {
+      "id": "debugging-issue-diagnosis",
+      "type": "backend",
+      "label": "Debugging &\nDiagnosis",
+      "sublabel": "Root Cause,\nRegression Tests",
+      "row": 6,
+      "col": 3,
+      "size": [140, 65]
+    },
+    {
+      "id": "verification-loop",
+      "type": "backend",
+      "label": "Verification\nLoop",
+      "sublabel": "Pre-ship Checks,\nQuality Gates",
+      "row": 6,
+      "col": 4
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Security & Compliance",
+      "wraps": ["security-review", "security-bounty-hunter", "security-scan", "security-best-practices", "authentication-systems"]
+    },
+    {
+      "kind": "region",
+      "label": "Backend API & Logic",
+      "wraps": ["production-audit", "api-error-handling", "rest-api-development", "error-handling", "performance-optimization", "debugging-issue-diagnosis", "verification-loop"]
+    },
+    {
+      "kind": "region",
+      "label": "Database & Data Layer",
+      "wraps": ["postgres-patterns", "mysql-patterns", "prisma-patterns", "database-migrations", "database-schema-design", "redis-patterns"]
+    },
+    {
+      "kind": "region",
+      "label": "Framework-Specific Security",
+      "wraps": ["springboot-security", "django-security", "laravel-security", "quarkus-security"]
+    },
+    {
+      "kind": "region",
+      "label": "Infrastructure & Deployment",
+      "wraps": ["kubernetes-patterns", "deployment-patterns"]
+    }
+  ],
+  "connections": [
+    {
+      "from": "security-review",
+      "to": "production-audit",
+      "label": "Security lens in audit",
+      "variant": "emphasis",
+      "labelDy": 54
+    },
+    {
+      "from": "production-audit",
+      "to": "api-error-handling",
+      "label": "Error handling check",
+      "variant": "default",
+      "labelDy": 24
+    },
+    {
+      "from": "production-audit",
+      "to": "rest-api-development",
+      "label": "API standards check",
+      "variant": "default",
+      "labelDy": 24
+    },
+    {
+      "from": "production-audit",
+      "to": "database-migrations",
+      "label": "Migration safety",
+      "variant": "emphasis",
+      "labelDy": 54
+    },
+    {
+      "from": "production-audit",
+      "to": "deployment-patterns",
+      "label": "Deploy strategy check",
+      "variant": "emphasis",
+      "labelAt": [444, 300]
+    },
+    {
+      "from": "production-audit",
+      "to": "kubernetes-patterns",
+      "label": "K8s readiness",
+      "variant": "default",
+      "labelAt": [358, 678]
+    },
+    {
+      "from": "security-review",
+      "to": "authentication-systems",
+      "label": "Auth validation",
+      "variant": "emphasis",
+      "labelAt": [530, 431]
+    },
+    {
+      "from": "security-review",
+      "to": "api-error-handling",
+      "label": "No error leakage",
+      "variant": "default",
+      "labelDy": 24
+    },
+    {
+      "from": "database-migrations",
+      "to": "database-schema-design",
+      "label": "Schema → Migration",
+      "variant": "emphasis",
+      "labelAt": [530, 678]
+    },
+    {
+      "from": "prisma-patterns",
+      "to": "postgres-patterns",
+      "label": "Prisma → PG indexing",
+      "variant": "default",
+      "labelDy": 54
+    },
+    {
+      "from": "prisma-patterns",
+      "to": "database-migrations",
+      "label": "Migrate deploy",
+      "variant": "default",
+      "labelDy": 54
+    },
+    {
+      "from": "redis-patterns",
+      "to": "api-error-handling",
+      "label": "Rate limit errors",
+      "variant": "default",
+      "labelAt": [444, 678]
+    },
+    {
+      "from": "springboot-security",
+      "to": "security-review",
+      "label": "Framework specifics",
+      "variant": "default",
+      "labelDy": -24
+    },
+    {
+      "from": "django-security",
+      "to": "security-review",
+      "label": "Framework specifics",
+      "variant": "default",
+      "labelDy": -24
+    },
+    {
+      "from": "laravel-security",
+      "to": "security-review",
+      "label": "Framework specifics",
+      "variant": "default",
+      "labelDy": -24
+    },
+    {
+      "from": "quarkus-security",
+      "to": "security-review",
+      "label": "Framework specifics",
+      "variant": "default",
+      "labelDy": -24
+    },
+    {
+      "from": "kubernetes-patterns",
+      "to": "deployment-patterns",
+      "label": "K8s deploy patterns",
+      "variant": "emphasis",
+      "labelDy": -24
+    },
+    {
+      "from": "error-handling",
+      "to": "api-error-handling",
+      "label": "Error patterns",
+      "variant": "default",
+      "labelDy": 54
+    },
+    {
+      "from": "debugging-issue-diagnosis",
+      "to": "production-audit",
+      "label": "Root cause for blockers",
+      "variant": "default",
+      "labelAt": [530, 678]
+    },
+    {
+      "from": "verification-loop",
+      "to": "production-audit",
+      "label": "Final gate",
+      "variant": "emphasis",
+      "labelAt": [616, 552]
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Security & Compliance",
+      "items": [
+        "SaaS/API: Full security stack applies",
+        "FinTech: Bounty hunter + Config scan critical",
+        "Healthcare: HIPAA compliance + Auth systems",
+        "All: Security review + Best practices baseline"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Backend API & Logic",
+      "items": [
+        "SaaS/API: Production audit + Error handling + REST",
+        "E-commerce: Rate limiting + Payment webhooks",
+        "Real-time: Performance + Redis + Error handling",
+        "All: Debugging + Verification loop gates"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Database & Data Layer",
+      "items": [
+        "E-commerce: Postgres patterns + Migrations + Redis",
+        "Serverless: Prisma patterns + Zero-downtime migrations",
+        "Analytics: Redis streams + Postgres patterns",
+        "Legacy: Schema design + Migration planning"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Framework-Specific Security",
+      "items": [
+        "Spring: SpringBoot security (JWT, @PreAuthorize)",
+        "Django: CSRF + ORM safety + Headers",
+        "Laravel: Sanctum + Gates + Mass assignment",
+        "Quarkus: JWT/OIDC + RBAC + Validation"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Infrastructure & Deployment",
+      "items": [
+        "FinTech/ML: K8s patterns (HPA, PDB, RBAC)",
+        "All: Deployment strategies (Blue-Green, Canary)",
+        "Serverless: Deployment patterns + Health checks",
+        "Production: K8s probes + Rollback strategy"
+      ]
+    }
+  ]
+}

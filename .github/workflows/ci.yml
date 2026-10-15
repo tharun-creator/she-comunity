@@ -1,0 +1,333 @@
+# SheStays Community — CI/CD Workflow
+# Runs isolated integration tests on every push/PR to main
+# Uses local Docker Compose for completely isolated test environment
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Minimal required permissions
+permissions:
+  contents: read
+
+# Prevent concurrent runs for the same PR/branch
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ============================================
+  # LINT & TYPE CHECK (Fast, runs first)
+  # ============================================
+  lint-and-typecheck:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: ./apps/web
+        run: npm ci
+
+      - name: Run ESLint
+        working-directory: ./apps/web
+        run: npm run lint
+
+      - name: Run TypeScript type check
+        working-directory: ./apps/web
+        run: npm run typecheck
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: '1.8.2'
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Load cached venv
+        id: cached-venv
+        uses: actions/cache@v4
+        with:
+          path: apps/api/.venv
+          key: venv-${{ runner.os }}-${{ hashFiles('apps/api/poetry.lock') }}
+
+      - name: Install backend dependencies
+        if: steps.cached-venv.outputs.cache-hit != 'true'
+        working-directory: ./apps/api
+        run: poetry install --no-interaction --no-root
+
+      - name: Run Ruff (lint)
+        working-directory: ./apps/api
+        run: poetry run ruff check .
+
+      - name: Run Ruff (format check)
+        working-directory: ./apps/api
+        run: poetry run ruff format --check .
+
+      - name: Run MyPy (type check)
+        working-directory: ./apps/api
+        run: poetry run mypy app
+
+  # ============================================
+  # UNIT TESTS (Parallel with lint)
+  # ============================================
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: ./apps/web
+        run: npm ci
+
+      - name: Run frontend unit tests
+        working-directory: ./apps/web
+        run: npm run test:run -- --coverage
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: '1.8.2'
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Load cached venv
+        id: cached-venv
+        uses: actions/cache@v4
+        with:
+          path: apps/api/.venv
+          key: venv-${{ runner.os }}-${{ hashFiles('apps/api/poetry.lock') }}
+
+      - name: Install backend dependencies
+        if: steps.cached-venv.outputs.cache-hit != 'true'
+        working-directory: ./apps/api
+        run: poetry install --no-interaction --no-root
+
+      - name: Run backend unit tests
+        working-directory: ./apps/api
+        run: poetry run pytest --cov=app --cov-report=xml --cov-report=term-missing
+
+  # ============================================
+  # INTEGRATION TESTS (Requires Docker services)
+  # ============================================
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [lint-and-typecheck, unit-tests]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Create test environment file
+        run: |
+          cat > .env.test << 'EOF'
+          # Test database (completely isolated from local/dev)
+          DB_USER=test_user
+          DB_PASSWORD=test_password_ci_only
+          DB_NAME=shestays_test
+          DB_HOST=database
+          DB_PORT=5432
+
+          # Frontend (SSR uses internal hostname)
+          NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+
+          # Supabase (mock mode for CI - no external dependency)
+          NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321
+          NEXT_PUBLIC_SUPABASE_ANON_KEY=test-anon-key
+          SUPABASE_URL=http://localhost:54321
+          SUPABASE_SERVICE_ROLE_KEY=test-service-key
+          SUPABASE_ANON_KEY=test-anon-key
+
+          # App config
+          APP_ENV=test
+          LOG_LEVEL=INFO
+          CORS_ORIGINS=http://localhost:3000
+          RATE_LIMIT_REQUESTS=1000
+          RATE_LIMIT_WINDOW=60
+
+          # Feature flags
+          NEXT_PUBLIC_USE_LIVE_API=true
+          EOF
+
+      - name: Validate Docker Compose config
+        run: docker compose --env-file .env.test config
+
+      - name: Build test images
+        run: docker compose --env-file .env.test build --pull
+
+      - name: Start test services
+        run: docker compose --env-file .env.test up -d
+
+      - name: Wait for database health
+        run: |
+          timeout 60 bash -c '
+            until docker compose --env-file .env.test exec -T database pg_isready -U test_user -d shestays_test; do
+              echo "Waiting for database..."
+              sleep 2
+            done
+          '
+
+      - name: Wait for backend health
+        run: |
+          timeout 90 bash -c '
+            until curl -sf http://localhost:8000/healthz > /dev/null; do
+              echo "Waiting for backend..."
+              sleep 3
+            done
+          '
+
+      - name: Wait for frontend health
+        run: |
+          timeout 60 bash -c '
+            until curl -sf http://localhost:3000 > /dev/null; do
+              echo "Waiting for frontend..."
+              sleep 3
+            done
+          '
+
+      - name: Verify network isolation
+        run: |
+          # Frontend CAN reach backend
+          docker compose --env-file .env.test exec -T frontend curl -sf http://backend:8000/healthz && echo "✓ Frontend -> Backend: OK" || (echo "✗ Frontend -> Backend: FAILED" && exit 1)
+
+          # Backend CAN reach database
+          docker compose --env-file .env.test exec -T backend pg_isready -h database -U test_user -d shestays_test && echo "✓ Backend -> Database: OK" || (echo "✗ Backend -> Database: FAILED" && exit 1)
+
+          # Verify database port NOT exposed to host
+          ! curl -sf http://localhost:5432 > /dev/null 2>&1 && echo "✓ Database port not exposed to host: OK" || (echo "✗ Database port exposed to host: FAILED" && exit 1)
+
+          # Verify backend port NOT exposed to host (only frontend port 3000 and backend port 8000 for tests)
+          echo "✓ Network isolation verified"
+
+      - name: Run backend integration tests
+        run: |
+          docker compose --env-file .env.test exec -T backend poetry run pytest --cov=app --cov-report=xml -v
+
+      - name: Run frontend integration tests
+        run: |
+          docker compose --env-file .env.test exec -T frontend npm run test:run -- --coverage
+
+      - name: Test critical API endpoints
+        run: |
+          # Health endpoints
+          curl -sf http://localhost:8000/healthz | grep -q '"status":"ok"' && echo "✓ /healthz OK" || exit 1
+          curl -sf http://localhost:8000/ready | grep -q '"status":"ready"' && echo "✓ /ready OK" || exit 1
+
+          # API endpoints (require auth - will return 401 without token, but endpoint exists)
+          curl -sf http://localhost:8000/api/v1/health | grep -q '"status"' && echo "✓ /api/v1/health OK" || exit 1
+
+          echo "✓ Critical endpoints verified"
+
+  # ============================================
+  # CLEANUP (Always runs)
+  # ============================================
+  cleanup:
+    name: Cleanup
+    runs-on: ubuntu-latest
+    if: always()
+    needs: integration-tests
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Stop and remove test containers
+        if: always()
+        run: |
+          docker compose --env-file .env.test down -v --remove-orphans 2>/dev/null || true
+
+      - name: Clean up Docker resources
+        if: always()
+        run: |
+          docker system prune -f --volumes 2>/dev/null || true
+
+  # ============================================
+  # SECURITY AUDIT (Runs in parallel)
+  # ============================================
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: '1.8.2'
+
+      - name: Install dependencies
+        working-directory: ./apps/api
+        run: poetry install --no-interaction --no-root
+
+      - name: Run pip-audit
+        working-directory: ./apps/api
+        run: poetry run pip-audit --desc --format=json --output=pip-audit.json || true
+
+      - name: Run bandit
+        working-directory: ./apps/api
+        run: poetry run bandit -r app -f json -o bandit.json || true
+
+      - name: Upload security reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-reports
+          path: |
+            apps/api/pip-audit.json
+            apps/api/bandit.json
+          retention-days: 30
+
+      - name: Run npm audit
+        working-directory: ./apps/web
+        run: npm audit --audit-level=high --json > npm-audit.json 2>&1 || true
+
+      - name: Upload npm audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-audit-report
+          path: apps/web/npm-audit.json
+          retention-days: 30

@@ -24,7 +24,9 @@ export function NearbyPgsPanel() {
       queryClient.invalidateQueries({ queryKey: ["joined-pgs"] });
       queryClient.invalidateQueries({ queryKey: ["nearby-pgs"] });
       const pg = nearby?.find((p) => p.id === pgId);
-      toast.success(pg ? `Joined ${pg.name}` : "Joined");
+      toast.success("You’re part of the community", {
+        description: pg ? `${pg.name} is now in your communities.` : "Your communities have been updated.",
+      });
     },
   });
 

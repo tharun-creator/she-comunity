@@ -70,7 +70,7 @@ export default function PgPlacePage({ params }: { params: Promise<{ id: string }
         </div>
       }
     >
-      <div className="mb-4 rounded-2xl border border-border bg-card p-5">
+      <div className="mb-4 rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
         <div className="flex items-start justify-between gap-3">
           <div>
             <h1 className="font-heading text-xl font-bold text-heading">{pg.name}</h1>
@@ -130,7 +130,7 @@ export default function PgPlacePage({ params }: { params: Promise<{ id: string }
       {/* Mobile sticky compose FAB */}
       <Link
         href={`/pg/${pg.id}/compose`}
-        className="fixed bottom-20 right-4 z-40 flex size-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg sm:hidden"
+        className="fixed right-4 bottom-[calc(5.25rem+env(safe-area-inset-bottom))] z-40 flex size-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 sm:hidden"
         aria-label="Write a review"
       >
         <PenSquare className="size-5" />

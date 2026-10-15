@@ -11,7 +11,7 @@ export function PgCard({ pg }: { pg: Pg }) {
   return (
     <Link
       href={`/pg/${pg.id}`}
-      className="group block rounded-2xl border border-border bg-card p-4 shadow-sm transition-shadow hover:shadow-md"
+      className="group block rounded-2xl border border-border bg-card p-4 shadow-sm transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:p-5"
     >
       <div className="flex items-start justify-between gap-3">
         <div>
@@ -21,7 +21,7 @@ export function PgCard({ pg }: { pg: Pg }) {
           <p className="mt-0.5 text-sm text-muted-foreground">{pg.area}</p>
         </div>
         {pg.aggregateRating != null && (
-          <div className="flex shrink-0 items-center gap-1 rounded-full bg-primary-soft px-2.5 py-1 text-sm font-semibold text-primary-hover">
+          <div className="flex shrink-0 items-center gap-1 rounded-full bg-primary-soft px-2.5 py-1.5 text-sm font-semibold text-primary-hover">
             <Star className="size-3.5 fill-current" />
             {pg.aggregateRating.toFixed(1)}
           </div>

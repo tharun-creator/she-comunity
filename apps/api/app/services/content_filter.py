@@ -9,13 +9,13 @@ logger = logging.getLogger("she-stays-api.content-filter")
 
 # Profanity patterns (basic - replace with proper library in production)
 PROFANITY_PATTERNS = [
-    r'\b(fuck|shit|bitch|asshole|bastard|cunt|dick|pussy|whore|slut)\b',
+    r'\b(fuck|shit|bitch|asshole|bastard|cunt|dick|pussy|whore|slut)\w*\b',
     # Add more as needed - in production use a library like better-profanity
 ]
 
 # PII patterns
 PII_PATTERNS = {
-    "phone": r'(\+?91[\s-]?)?[6-9]\d{9}',  # Indian phone numbers
+    "phone": r'(?:\+?91[\s-]?)?[6-9]\d{4}[\s-]?\d{5}',  # Indian phone numbers
     "email": r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b',
     "address": r'\b\d{1,5}\s+[A-Za-z\s]+(?:street|st|road|rd|avenue|ave|lane|ln|drive|dr|court|ct|circle|cir|boulevard|blvd)\b',
     "pincode": r'\b\d{6}\b',  # Indian pincodes
@@ -39,7 +39,7 @@ def check_pii(text: str) -> dict[str, list[str]]:
     """Check text for PII. Returns dict of pii_type -> matches."""
     matches = {}
     for pii_type, pattern in COMPILED_PII.items():
-        found = pattern.findall(text)
+        found = [m.group(0) for m in pattern.finditer(text)]
         if found:
             matches[pii_type] = found
     return matches

@@ -6,6 +6,7 @@ import logging
 import traceback
 import uuid
 from typing import Any
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 

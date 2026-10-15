@@ -43,7 +43,9 @@ export function ReportModal({
   const mutation = useMutation({
     mutationFn: () => reportContent({ targetType, targetId, reason: reason!, detail }),
     onSuccess: () => {
-      toast.success("Report submitted. Our moderation team will review it.");
+      toast.success("Thanks for looking out for the community", {
+        description: "Our moderation team will review your report.",
+      });
       onOpenChange(false);
       setReason(null);
       setDetail("");

@@ -91,13 +91,13 @@ export default function ComposePage({ params }: { params: Promise<{ id: string }
     <AppShell>
       <Link
         href={`/pg/${id}`}
-        className="mb-3 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+        className="mb-3 inline-flex min-h-11 items-center gap-1 rounded-lg pr-2 text-sm text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
       >
         <ArrowLeft className="size-3.5" />
         Back to {pg?.name ?? "community"}
       </Link>
 
-      <h1 className="mb-4 font-heading text-xl font-bold text-heading">New post</h1>
+      <h1 className="mb-4 font-heading text-2xl font-bold tracking-tight text-heading">New post</h1>
 
       <div className="space-y-4">
         <Tabs value={type} onValueChange={(v) => setType(v as PostType)}>
@@ -120,7 +120,7 @@ export default function ComposePage({ params }: { params: Promise<{ id: string }
                   type="button"
                   onClick={() => setResidency(residency === val ? null : val)}
                   className={cn(
-                    "rounded-full border px-3 py-1.5 text-sm font-medium",
+                    "min-h-11 rounded-full border px-3 py-1.5 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
                     residency === val
                       ? "border-primary bg-primary-soft text-primary-hover"
                       : "border-border text-muted-foreground hover:bg-muted"
@@ -156,7 +156,7 @@ export default function ComposePage({ params }: { params: Promise<{ id: string }
                   if (fileInputRef.current) fileInputRef.current.value = "";
                 }}
                 aria-label="Remove image"
-                className="absolute right-2 top-2 rounded-full bg-black/60 p-1 text-white hover:bg-black/80"
+                className="absolute right-2 top-2 flex size-11 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 <X className="size-3.5" />
               </button>
@@ -197,7 +197,7 @@ export default function ComposePage({ params }: { params: Promise<{ id: string }
                   setLinkFieldOpen(false);
                 }}
                 aria-label="Remove link"
-                className="text-muted-foreground hover:text-danger"
+              className="flex size-11 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:text-danger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 <X className="size-4" />
               </button>

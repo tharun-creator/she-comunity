@@ -29,7 +29,7 @@ export default function ProfilePage() {
         <Skeleton className="h-40 w-full rounded-2xl" />
       ) : (
         <div className="space-y-6">
-          <div className="rounded-2xl border border-border bg-card p-4 sm:p-5">
+          <div className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
             <div className="flex items-center gap-3 sm:gap-4">
               <Avatar className="size-14 shrink-0 sm:size-16">
                 <AvatarFallback className="text-base font-semibold text-primary-hover bg-primary-soft sm:text-lg">
@@ -56,7 +56,7 @@ export default function ProfilePage() {
           </div>
 
           <section>
-            <h2 className="mb-2.5 flex items-center gap-1.5 font-heading text-sm font-semibold text-heading">
+            <h2 className="mb-2.5 flex items-center gap-1.5 font-heading text-base font-semibold text-heading">
               <HomeIcon className="size-4" />
               PGs lived at
               <span className="font-normal text-muted-foreground">({profile.pgsLivedAt.length})</span>
@@ -77,7 +77,7 @@ export default function ProfilePage() {
           </section>
 
           <section>
-            <h2 className="mb-2.5 flex items-center gap-1.5 font-heading text-sm font-semibold text-heading">
+            <h2 className="mb-2.5 flex items-center gap-1.5 font-heading text-base font-semibold text-heading">
               <Bookmark className="size-4" />
               Saved PGs
               <span className="font-normal text-muted-foreground">({profile.savedPgIds.length})</span>

@@ -35,10 +35,10 @@ Add semantic tokens the app will also need (kept consistent with the palette abo
 
 ## 2. Reference UI (from uploaded screens)
 The uploaded screens (booking-app style: home feed with category pills, listing card with rating/beds/price, detail page with gallery and amenities) set the **layout language** to reuse, adapted to a community/review product instead of a booking one:
-- Home screen pattern → becomes the **Discover feed**: greeting header, category/filter pills (swap "Villa/Apartment/Hotel" for area filters like "OMR / Nungambakkam / Velachery / All"), card list below.
+- Home screen pattern → becomes the **Discover feed**: a concise community heading, a central post composer, category/filter pills, and the activity stream.
 - Listing card pattern → becomes the **PG place-page card**: PG name, area, aggregate rating, member/review count badge, small tag chips (Safety / Food / Wifi) instead of beds/baths.
 - Detail page pattern (gallery, sticky bottom price bar) → becomes the **PG place page**: header photo/area, description, amenity chips, then the **feed of posts** where "Book Now" was — sticky bottom bar becomes "Write a Review" / "Join Community" instead.
-- Rounded-pill category filters, soft card shadows, and the pill-shaped primary button are carried through directly — they match the brand's rounded, soft, non-corporate feel and suit --color-primary well.
+- Use rounded filters and the existing button system selectively; the composer and activity cards anchor the visual hierarchy while side panels stay compact.
 
 ## 3. Typography
 - Headings: a clean geometric sans (Inter or Manrope) at 600–700 weight, color `--color-text-heading`.
@@ -57,7 +57,7 @@ The uploaded screens (booking-app style: home feed with category pills, listing 
 - **ReportModal**: reason list (harassment, fake review, doxxing, spam, other) + optional detail field.
 
 ## 5. Layout: mobile vs desktop
-- **Mobile (base, matches reference screens)**: single column, bottom tab bar (Home / Search / Saved / Profile — swap the reference's heart/person icons to match: Home, Search, Notifications, Profile), full-width cards, sticky compose FAB (pink, `--color-primary`) bottom-right on feed screens.
+- **Mobile (base, matches reference screens)**: compact brand header, single-column content, bottom tab bar (Home / Search / Notifications / Profile), full-width cards, sticky compose action (pink, `--color-primary`) bottom-right on feed screens. Reserve bottom safe-area spacing so actions and content clear the tab bar.
 - **Desktop (≥1024px)**: three-column layout — left: persistent sidebar nav (Home, Search, Saved PGs, joined communities list); center: feed/content, capped at ~680px reading width for comfortable line length; right: contextual sidebar (trending PGs, PG stats/tags when on a place page, community guidelines reminder near the compose action). No bottom tab bar on desktop — nav lives in the left sidebar/top bar instead.
 - Both breakpoints share the same component set and tokens; only layout composition changes, so components should be built container-agnostic (no hardcoded viewport widths inside components).
 

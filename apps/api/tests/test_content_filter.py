@@ -108,7 +108,7 @@ class TestAutoFlagContent:
 
     def test_content_preview(self):
         """Flag info should include content preview."""
-        long_text = "x" * 300
+        long_text = "fuck " + ("x" * 300)
         result = auto_flag_content(long_text)
         assert result is not None
         assert len(result["content_preview"]) <= 200

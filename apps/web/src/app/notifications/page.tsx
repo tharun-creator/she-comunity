@@ -32,8 +32,9 @@ export default function NotificationsPage() {
 
   return (
     <AppShell>
-      <header className="mb-4">
-        <h1 className="font-heading text-xl font-bold text-heading">Notifications</h1>
+      <header className="mb-5">
+        <p className="text-sm font-medium text-primary">Your community updates</p>
+        <h1 className="mt-1 font-heading text-2xl font-bold tracking-tight text-heading">Notifications</h1>
       </header>
 
       <div className="space-y-2">
@@ -46,7 +47,7 @@ export default function NotificationsPage() {
               key={n.id}
               href={`/pg/${n.pgId}/post/${n.postId}`}
               className={cn(
-                "flex items-start gap-3 rounded-xl border border-border p-3 transition-colors",
+                "flex min-h-16 items-start gap-3 rounded-xl border border-border p-3 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
                 n.isRead ? "bg-card" : "bg-primary-soft/50"
               )}
             >

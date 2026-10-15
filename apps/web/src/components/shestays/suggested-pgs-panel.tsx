@@ -23,12 +23,14 @@ export function SuggestedPgsPanel() {
       queryClient.invalidateQueries({ queryKey: ["joined-pgs"] });
       queryClient.invalidateQueries({ queryKey: ["suggested-pgs"] });
       const pg = suggested?.find((p) => p.id === pgId);
-      toast.success(pg ? `Joined ${pg.name}` : "Joined");
+      toast.success("You’re part of the community", {
+        description: pg ? `${pg.name} is now in your communities.` : "Your communities have been updated.",
+      });
     },
   });
 
   return (
-    <div className="space-y-3 rounded-2xl border border-border bg-card p-4">
+    <section className="space-y-3 rounded-2xl border border-border bg-card p-4">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="font-heading text-sm font-semibold text-heading">PGs for you</h2>
@@ -46,6 +48,6 @@ export function SuggestedPgsPanel() {
           <PgListRow key={pg.id} pg={pg} tintIndex={i} joining={joinMutation.isPending} onJoin={(id) => joinMutation.mutate(id)} />
         ))}
       </div>
-    </div>
+    </section>
   );
 }

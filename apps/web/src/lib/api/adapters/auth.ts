@@ -8,11 +8,7 @@ export async function fetchProfile(): Promise<UserProfile | null> {
     return mockFetchProfile();
   }
 
-  try {
-    return apiClient.get<UserProfile>("/users/me");
-  } catch {
-    return null;
-  }
+  return apiClient.get<UserProfile>("/users/me");
 }
 
 export async function refreshProfile(): Promise<UserProfile | null> {
@@ -21,11 +17,7 @@ export async function refreshProfile(): Promise<UserProfile | null> {
     return mockFetchProfile();
   }
 
-  try {
-    return apiClient.get<UserProfile>("/users/me");
-  } catch {
-    return null;
-  }
+  return apiClient.get<UserProfile>("/users/me");
 }
 
 export async function attestWoman(): Promise<UserProfile | null> {
@@ -34,9 +26,5 @@ export async function attestWoman(): Promise<UserProfile | null> {
     return mockFetchProfile();
   }
 
-  try {
-    return apiClient.patch<UserProfile>("/users/me/attest", { attested: true });
-  } catch {
-    return null;
-  }
+  return apiClient.patch<UserProfile>("/users/me/attest", { attested: true });
 }

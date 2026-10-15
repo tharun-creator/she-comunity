@@ -56,6 +56,18 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.join(__dirname, ".."),
   },
+  async rewrites() {
+    const configuredBackendUrl = process.env.API_INTERNAL_URL;
+    if (!configuredBackendUrl) return [];
+
+    const backendUrl = configuredBackendUrl.replace(/\/+$/, "");
+    return [
+      {
+        source: "/api/v1/:path*",
+        destination: `${backendUrl}/api/v1/:path*`,
+      },
+    ];
+  },
   async headers() {
     return [
       {

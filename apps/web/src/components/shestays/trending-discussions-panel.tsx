@@ -14,7 +14,7 @@ export function TrendingDiscussionsPanel() {
   });
 
   return (
-    <div className="space-y-3 rounded-2xl border border-border bg-card p-4">
+    <section className="space-y-3 rounded-2xl border border-border bg-card p-4">
       <div className="flex items-center justify-between">
         <h2 className="flex items-center gap-1.5 font-heading text-sm font-semibold text-heading">
           <Flame className="size-4 text-danger" />
@@ -28,7 +28,7 @@ export function TrendingDiscussionsPanel() {
       <div className="space-y-3">
         {isLoading && Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
         {discussions?.map((d, i) => (
-          <Link key={d.postId} href={`/pg/${d.pgId}/post/${d.postId}`} className="flex items-start gap-2.5 group">
+          <Link key={d.postId} href={`/pg/${d.pgId}/post/${d.postId}`} className="group flex min-h-11 items-start gap-2.5 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
             <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-secondary text-[11px] font-semibold text-secondary-foreground">
               {i + 1}
             </span>
@@ -41,6 +41,6 @@ export function TrendingDiscussionsPanel() {
           </Link>
         ))}
       </div>
-    </div>
+    </section>
   );
 }

@@ -8,11 +8,7 @@ export async function fetchPost(postId: string): Promise<Post | null> {
     return mockFetch(postId);
   }
 
-  try {
-    return apiClient.get<Post>(`/posts/${postId}`);
-  } catch {
-    return null;
-  }
+  return apiClient.get<Post>(`/posts/${postId}`);
 }
 
 export async function fetchCommentsForPost(postId: string): Promise<Comment[]> {
@@ -21,11 +17,7 @@ export async function fetchCommentsForPost(postId: string): Promise<Comment[]> {
     return mockFetch(postId);
   }
 
-  try {
-    return apiClient.get<Comment[]>(`/posts/${postId}/comments`);
-  } catch {
-    return [];
-  }
+  return apiClient.get<Comment[]>(`/posts/${postId}/comments`);
 }
 
 export async function createPost(input: { pgId: string; type: "review" | "discussion" | "poll"; title: string; body: string; isAnonymous: boolean; residencyClaim?: "stayed_here" | "currently_here"; ratingTags?: Record<string, number>; overallRating?: number; pollOptions?: { label: string }[]; imageUrl?: string; linkUrl?: string; topics?: string[] }): Promise<Post | null> {
@@ -34,11 +26,7 @@ export async function createPost(input: { pgId: string; type: "review" | "discus
     return mockCreate(input);
   }
 
-  try {
-    return apiClient.post<Post>(`/pgs/${input.pgId}/posts`, input);
-  } catch {
-    return null;
-  }
+  return apiClient.post<Post>(`/pgs/${input.pgId}/posts`, input);
 }
 
 export async function createComment(input: { postId: string; parentCommentId: string | null; body: string; author: Comment["author"] }): Promise<Comment | null> {
@@ -47,15 +35,11 @@ export async function createComment(input: { postId: string; parentCommentId: st
     return mockCreate(input);
   }
 
-  try {
-    return apiClient.post<Comment>(`/posts/${input.postId}/comments`, {
-      body: input.body,
-      is_anonymous: input.author.isAnonymous,
-      parent_comment_id: input.parentCommentId,
-    });
-  } catch {
-    return null;
-  }
+  return apiClient.post<Comment>(`/posts/${input.postId}/comments`, {
+    body: input.body,
+    is_anonymous: input.author.isAnonymous,
+    parent_comment_id: input.parentCommentId,
+  });
 }
 
 export async function votePost(postId: string, direction: 1 | -1 | 0): Promise<unknown> {
@@ -64,11 +48,7 @@ export async function votePost(postId: string, direction: 1 | -1 | 0): Promise<u
     return mockVote(postId, direction);
   }
 
-  try {
-    return apiClient.post<unknown>(`/posts/${postId}/vote`, { direction });
-  } catch {
-    return null;
-  }
+  return apiClient.post<unknown>(`/posts/${postId}/vote`, { direction });
 }
 
 export async function votePollOption(postId: string, optionId: string): Promise<unknown> {
@@ -77,24 +57,16 @@ export async function votePollOption(postId: string, optionId: string): Promise<
     return mockVote(postId, optionId);
   }
 
-  try {
-    return apiClient.post<unknown>(`/posts/${postId}/poll/vote`, { option_id: optionId });
-  } catch {
-    return null;
-  }
+  return apiClient.post<unknown>(`/posts/${postId}/poll/vote`, { option_id: optionId });
 }
 
-export async function toggleSavePost(postId: string): Promise<unknown> {
+export async function toggleSavePost(postId: string): Promise<Post> {
   if (!config.useLiveApi) {
     const { toggleSavePost: mockToggle } = await import("@/lib/mock-data");
     return mockToggle(postId);
   }
 
-  try {
-    return apiClient.post<unknown>(`/posts/${postId}/save`);
-  } catch {
-    return null;
-  }
+  return apiClient.post<Post>(`/posts/${postId}/save`);
 }
 
 export async function reportContent(input: { targetType: "post" | "comment"; targetId: string; reason: string; detail?: string }): Promise<unknown> {
@@ -103,9 +75,5 @@ export async function reportContent(input: { targetType: "post" | "comment"; tar
     return mockReport(input);
   }
 
-  try {
-    return apiClient.post<unknown>("/reports", input);
-  } catch {
-    return null;
-  }
+  return apiClient.post<unknown>("/reports", input);
 }

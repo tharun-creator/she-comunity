@@ -8,9 +8,5 @@ export async function fetchNotifications(): Promise<AppNotification[]> {
     return mockFetch();
   }
 
-  try {
-    return apiClient.get<AppNotification[]>("/notifications");
-  } catch {
-    return [];
-  }
+  return apiClient.get<AppNotification[]>("/notifications");
 }

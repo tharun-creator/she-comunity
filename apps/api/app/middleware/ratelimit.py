@@ -6,6 +6,9 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 from app.core.config import settings
 
+from app.deps.supabase import get_supabase_client
+from starlette.responses import JSONResponse
+
 logger = logging.getLogger(__name__)
 
 # In-memory rate limit store (use Redis in production)
@@ -17,6 +20,9 @@ def _clean_old_entries(key: str, window: int) -> None:
     """Remove entries older than the window."""
     now = time.time()
     _rate_limit_store[key] = [ts for ts in _rate_limit_store[key] if now - ts < window]
+    # Reclaim key memory if empty
+    if not _rate_limit_store[key]:
+        _rate_limit_store.pop(key, None)
 
 
 def _get_client_key(request: Request, user_id: str | None = None) -> str:
@@ -45,9 +51,9 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         if current_count >= settings.rate_limit_requests:
             retry_after = settings.rate_limit_window
             logger.warning(f"Rate limit exceeded for {key}")
-            raise HTTPException(
+            return JSONResponse(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail="Rate limit exceeded",
+                content={"detail": "Rate limit exceeded"},
                 headers={"Retry-After": str(retry_after)}
             )
 
@@ -69,8 +75,6 @@ async def check_write_rate_limit(user_id: str, action_type: str) -> None:
     - Accounts < 24h old: max 3 posts/comments, 20 votes per 24h
     - Accounts < 5 lifetime approved actions: max 10 posts/comments per rolling 24h
     """
-    from app.deps.supabase import get_supabase_client
-    
     supabase = get_supabase_client()
     
     # Get user account info
@@ -78,14 +82,28 @@ async def check_write_rate_limit(user_id: str, action_type: str) -> None:
     if not user_resp.data:
         return  # User not found, let it pass (will fail later)
     
-    user_data = user_resp.data
+    user_data = getattr(user_resp, "data", None)
+    if (not user_data or not isinstance(user_data, dict)) and hasattr(user_resp, "execute"):
+        exec_res = user_resp.execute()
+        user_data = getattr(exec_res, "data", None)
+
+    if not user_data or not isinstance(user_data, dict):
+        return  # User not found, let it pass (will fail later)
+    
     account_created = user_data.get("account_created_at")
     
     if not account_created:
         return
     
-    from datetime import datetime, timezone
-    account_age_hours = (datetime.now(timezone.utc) - datetime.fromisoformat(account_created.replace("Z", "+00:00"))).total_seconds() / 3600
+    from datetime import datetime, timezone, timedelta
+    if isinstance(account_created, str):
+        created_dt = datetime.fromisoformat(account_created.replace("Z", "+00:00"))
+    elif isinstance(account_created, datetime):
+        created_dt = account_created
+    else:
+        created_dt = datetime.now(timezone.utc) - timedelta(hours=1)
+
+    account_age_hours = (datetime.now(timezone.utc) - created_dt).total_seconds() / 3600
     
     # Get lifetime approved actions count
     posts_count = supabase.from_("posts").select("id", count="exact").eq("author_id", user_id).eq("is_removed", False).execute()

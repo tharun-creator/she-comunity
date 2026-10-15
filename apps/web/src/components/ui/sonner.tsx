@@ -38,7 +38,13 @@ const Toaster = ({ ...props }: ToasterProps) => {
       }
       toastOptions={{
         classNames: {
-          toast: "cn-toast",
+          toast: "cn-toast !rounded-2xl !border-border !bg-card !text-body !shadow-[0_18px_48px_-24px_rgba(8,24,40,0.28)]",
+          title: "font-semibold text-heading",
+          description: "text-sm leading-5 text-muted-foreground",
+          icon: "mt-0.5",
+          success: "!border-success/30",
+          error: "!border-danger/30",
+          warning: "!border-warning/30",
         },
       }}
       {...props}
