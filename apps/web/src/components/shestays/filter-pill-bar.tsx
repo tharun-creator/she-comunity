@@ -19,10 +19,10 @@ export function FilterPillBar<T extends string>({
           type="button"
           onClick={() => onChange(opt)}
           className={cn(
-            "min-h-11 shrink-0 rounded-full border px-4 py-2 text-sm font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+            "min-h-9 shrink-0 rounded-xl border-2 border-black px-3.5 py-1.5 text-xs font-black transition-all cursor-pointer focus:outline-none",
             value === opt
-              ? "border-primary bg-primary text-primary-foreground"
-              : "border-border bg-surface text-muted-foreground hover:bg-muted"
+              ? "bg-[#121212] text-white shadow-[2px_2px_0px_#000]"
+              : "bg-white text-black shadow-[2px_2px_0px_#000] hover:bg-[#FFE5EC] hover:-translate-y-0.5 active:translate-y-0.5"
           )}
         >
           {opt}

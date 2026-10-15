@@ -23,7 +23,15 @@ export async function fetchCommentsForPost(postId: string): Promise<Comment[]> {
 export async function createPost(input: { pgId: string; type: "review" | "discussion" | "poll"; title: string; body: string; isAnonymous: boolean; residencyClaim?: "stayed_here" | "currently_here"; ratingTags?: Record<string, number>; overallRating?: number; pollOptions?: { label: string }[]; imageUrl?: string; linkUrl?: string; topics?: string[] }): Promise<Post | null> {
   if (!config.useLiveApi) {
     const { createPost: mockCreate } = await import("@/lib/mock-data");
-    return mockCreate(input);
+    return mockCreate({
+      ...input,
+      pollOptions: input.pollOptions?.map((o, i) => ({ id: `opt-${i}`, label: o.label, voteCount: 0 })),
+      author: {
+        isAnonymous: input.isAnonymous,
+        displayName: input.isAnonymous ? undefined : "Me",
+        anonymousTag: input.isAnonymous ? "Anonymous Resident" : undefined,
+      },
+    });
   }
 
   return apiClient.post<Post>(`/pgs/${input.pgId}/posts`, input);

@@ -14,28 +14,28 @@ export function TrendingDiscussionsPanel() {
   });
 
   return (
-    <section className="space-y-3 rounded-2xl border border-border bg-card p-4">
-      <div className="flex items-center justify-between">
-        <h2 className="flex items-center gap-1.5 font-heading text-sm font-semibold text-heading">
-          <Flame className="size-4 text-danger" />
-          Trending discussions
+    <section className="space-y-3 rounded-2xl border-2 border-black bg-white p-4 shadow-[3px_3px_0px_#000]">
+      <div className="flex items-center justify-between border-b-2 border-black/10 pb-2">
+        <h2 className="flex items-center gap-1.5 font-heading text-xs font-black uppercase tracking-wider text-black">
+          <Flame className="size-4 text-[#FF4B72]" />
+          Trending Discussions
         </h2>
-        <Link href="/search" className="shrink-0 text-xs font-medium text-primary hover:underline">
+        <Link href="/search" className="shrink-0 text-xs font-black text-[#FF4B72] hover:underline">
           See all
         </Link>
       </div>
 
-      <div className="space-y-3">
-        {isLoading && Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
+      <div className="space-y-2.5">
+        {isLoading && Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-10 w-full rounded-xl border border-black" />)}
         {discussions?.map((d, i) => (
-          <Link key={d.postId} href={`/pg/${d.pgId}/post/${d.postId}`} className="group flex min-h-11 items-start gap-2.5 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
-            <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-secondary text-[11px] font-semibold text-secondary-foreground">
+          <Link key={d.id} href={`/pg/${d.pgId}/post/${d.id}`} className="group flex min-h-10 items-start gap-2.5 rounded-lg focus:outline-none">
+            <span className="flex size-5 shrink-0 items-center justify-center rounded border border-black bg-[#FFD23F] text-[10px] font-black text-black">
               {i + 1}
             </span>
-            <div className="min-w-0">
-              <p className="truncate text-sm font-medium text-heading group-hover:text-primary">{d.title}</p>
-              <p className="text-xs text-muted-foreground">
-                {d.replyCount} replies · {relativeTime(d.lastActivityAt)}
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xs font-bold text-black group-hover:text-[#FF4B72]">{d.title}</p>
+              <p className="text-[10px] font-bold text-gray-500">
+                {d.commentCount} replies · {relativeTime(d.createdAt)}
               </p>
             </div>
           </Link>

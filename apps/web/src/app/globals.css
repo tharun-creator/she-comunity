@@ -50,6 +50,14 @@
   --color-primary-soft: var(--ss-primary-soft);
   --color-primary-hover: var(--ss-primary-hover);
   --color-blush: var(--ss-blush);
+  --color-neo-pink: #FF4B72;
+  --color-neo-yellow: #FFD23F;
+  --color-neo-mint: #05D5A4;
+  --color-neo-blue: #3B82F6;
+  --color-neo-orange: #FF6B35;
+  --color-neo-cream: #FFFDF9;
+  --color-neo-dark: #121212;
+  --color-neo-purple: #A78BFA;
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -60,21 +68,21 @@
 }
 
 :root {
-  /* SheStays brand tokens — source of truth: docs/DESIGN-SYSTEM.md */
-  --ss-primary: #F82A78;
-  --ss-primary-hover: #E91E63;
-  --ss-primary-soft: #FCE4EC;
-  --ss-text-heading: #081828;
-  --ss-text-body: #334155;
-  --ss-text-muted: #64748B;
-  --ss-background: #FAF9F7;
+  /* SheStays brand tokens — Neubrutalism ProMax */
+  --ss-primary: #FF4B72;
+  --ss-primary-hover: #E6395D;
+  --ss-primary-soft: #FFE5EC;
+  --ss-text-heading: #121212;
+  --ss-text-body: #1F2937;
+  --ss-text-muted: #4B5563;
+  --ss-background: #FFFDF9;
   --ss-surface: #FFFFFF;
-  --ss-surface-soft: #F0E9EF;
-  --ss-border: #E8D8D8;
-  --ss-blush: #E8D8D8;
-  --ss-success: #22C55E;
+  --ss-surface-soft: #FFF1F3;
+  --ss-border: #121212;
+  --ss-blush: #FFEAEF;
+  --ss-success: #05D5A4;
   --ss-danger: #EF4444;
-  --ss-warning: #F59E0B;
+  --ss-warning: #FFD23F;
   --ss-anonymous: #475569;
 
   /* shadcn semantic mapping onto the brand tokens above */
@@ -172,5 +180,65 @@
   -ms-overflow-style: none;
   &::-webkit-scrollbar {
     display: none;
+  }
+}
+
+@layer utilities {
+  .neo-box {
+    border: 2.5px solid #121212;
+    box-shadow: 4px 4px 0px #121212;
+    background-color: #ffffff;
+    border-radius: 1rem;
+  }
+  .neo-box-interactive {
+    border: 2.5px solid #121212;
+    box-shadow: 4px 4px 0px #121212;
+    background-color: #ffffff;
+    border-radius: 1rem;
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .neo-box-interactive:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0px #121212;
+  }
+  .neo-box-interactive:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px #121212;
+  }
+  .neo-btn {
+    border: 2.5px solid #121212;
+    box-shadow: 3px 3px 0px #121212;
+    font-weight: 700;
+    border-radius: 0.75rem;
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .neo-btn:hover {
+    transform: translate(-1.5px, -1.5px);
+    box-shadow: 5px 5px 0px #121212;
+  }
+  .neo-btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0px #121212;
+  }
+  .neo-pill {
+    border: 2px solid #121212;
+    box-shadow: 2px 2px 0px #121212;
+    border-radius: 9999px;
+    font-weight: 700;
+    transition: all 0.15s ease;
+  }
+  .neo-pill:hover {
+    transform: translateY(-1px);
+    box-shadow: 3px 3px 0px #121212;
+  }
+  .neo-pill:active {
+    transform: translateY(1px);
+    box-shadow: 1px 1px 0px #121212;
+  }
+  .neo-badge {
+    border: 1.5px solid #121212;
+    box-shadow: 1.5px 1.5px 0px #121212;
+    border-radius: 0.5rem;
+    font-weight: 800;
   }
 }

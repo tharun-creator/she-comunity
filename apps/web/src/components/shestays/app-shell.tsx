@@ -67,7 +67,7 @@ export function AppShell({
       )}
 
       {/* Mobile bottom tab bar */}
-      <nav aria-label="Mobile navigation" className="fixed inset-x-0 bottom-0 z-40 flex min-h-16 gap-1 border-t border-border/80 bg-surface/95 px-2 pt-1 pb-[env(safe-area-inset-bottom)] shadow-[0_-10px_32px_-28px_rgba(8,24,40,0.45)] backdrop-blur-xl lg:hidden">
+      <nav aria-label="Mobile navigation" className="fixed inset-x-0 bottom-0 z-40 flex min-h-16 gap-1 border-t-2 border-black bg-white px-2 pt-1 pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-[0_-3px_0px_#000] lg:hidden">
         {MOBILE_NAV_ITEMS.map((item) => {
           const active = pathname === item.href;
           return (
@@ -76,12 +76,14 @@ export function AppShell({
               href={item.href}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-1.5 text-[11px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary",
-                active ? "bg-primary-soft/75 text-primary-hover" : "text-muted-foreground hover:bg-secondary/70"
+                "flex min-h-12 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-1 text-[11px] font-black transition-transform",
+                active
+                  ? "border-2 border-black bg-[#FFE5EC] text-[#FF4B72] shadow-[1.5px_1.5px_0px_#000]"
+                  : "text-gray-600 hover:text-black"
               )}
             >
               <item.icon className="size-5" />
-              {item.label}
+              <span>{item.label}</span>
             </Link>
           );
         })}

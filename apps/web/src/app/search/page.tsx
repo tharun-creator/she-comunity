@@ -4,14 +4,13 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Building2, MapPin, Plus, Search as SearchIcon, Star, Users, MessageSquare, ArrowUpRight } from "lucide-react";
+import { Building2, MapPin, Plus, Search as SearchIcon, Star, Users, MessageSquare, ArrowUpRight, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/shestays/app-shell";
-import { FilterPillBar } from "@/components/shestays/filter-pill-bar";
+import { PgCard } from "@/components/shestays/pg-card";
+import { ChennaiPgMap } from "@/components/shestays/chennai-pg-map";
+import { SearchFilterBar, type ViewMode } from "@/components/shestays/search-filter-bar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -20,23 +19,29 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { fetchDiscoverFeed, searchPgs, createPg } from "@/lib/api/adapters";
 import { CHENNAI_AREAS, type ChennaiArea, type Pg } from "@/types/domain";
-
-const AREA_OPTIONS = ["All", ...CHENNAI_AREAS] as const;
-type AreaFilter = (typeof AREA_OPTIONS)[number];
+import { cn } from "@/lib/utils";
 
 export default function SearchPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
+
+  // Search & Filter State
   const [query, setQuery] = useState("");
-  const [area, setArea] = useState<AreaFilter>("All");
+  const [area, setArea] = useState<string>("All");
+  const [budget, setBudget] = useState<string>("All Budgets");
+  const [sort, setSort] = useState<string>("rating");
+  const [category, setCategory] = useState<string>("All Hostels");
+  const [viewMode, setViewMode] = useState<ViewMode>("split");
   const [selectedPgId, setSelectedPgId] = useState<string | null>(null);
+
+  // Add PG Modal State
   const [addOpen, setAddOpen] = useState(false);
   const [newName, setNewName] = useState("");
   const [newArea, setNewArea] = useState<ChennaiArea>(CHENNAI_AREAS[0]);
 
+  // Queries
   const { data: results, isFetching } = useQuery({
     queryKey: ["search", query],
     queryFn: () => searchPgs(query),
@@ -45,13 +50,23 @@ export default function SearchPage() {
 
   const { data: discoveredPgs, isLoading: isDiscovering } = useQuery({
     queryKey: ["search-discover", area],
-    queryFn: () => fetchDiscoverFeed(area),
+    queryFn: () => fetchDiscoverFeed(area === "All" ? "All" : (area as ChennaiArea)),
   });
 
   const isSearching = query.trim().length > 1;
   const sourceResults = isSearching ? results : discoveredPgs;
-  const visibleResults = (sourceResults ?? []).filter((pg) => area === "All" || pg.area === area);
-  const selectedPg = visibleResults.find((pg) => pg.id === selectedPgId) ?? visibleResults[0] ?? null;
+
+  // Filter & Sort Results
+  let visibleResults = (sourceResults ?? []).filter((pg) => area === "All" || pg.area === area);
+
+  if (sort === "rating") {
+    visibleResults = [...visibleResults].sort((a, b) => (b.aggregateRating ?? 0) - (a.aggregateRating ?? 0));
+  } else if (sort === "residents") {
+    visibleResults = [...visibleResults].sort((a, b) => b.memberCount - a.memberCount);
+  } else if (sort === "reviews") {
+    visibleResults = [...visibleResults].sort((a, b) => b.reviewCount - a.reviewCount);
+  }
+
   const isLoadingResults = isSearching ? isFetching : isDiscovering;
 
   const createMutation = useMutation({
@@ -60,8 +75,8 @@ export default function SearchPage() {
       if (!pg) return;
       queryClient.invalidateQueries({ queryKey: ["discover"] });
       queryClient.invalidateQueries({ queryKey: ["search-discover"] });
-      toast.success("Your new community is ready", {
-        description: `${pg.name} is ready for its first story.`,
+      toast.success("Community Created", {
+        description: `${pg.name} is ready for its first resident review.`,
       });
       setAddOpen(false);
       setNewName("");
@@ -69,257 +84,226 @@ export default function SearchPage() {
     },
   });
 
-  const openCreatePg = (name: string) => {
-    setNewName(name);
-    setNewArea(area === "All" ? CHENNAI_AREAS[0] : area);
+  const openCreatePg = (initialName: string) => {
+    setNewName(initialName);
+    setNewArea(area === "All" ? CHENNAI_AREAS[0] : (area as ChennaiArea));
     setAddOpen(true);
   };
 
   return (
     <AppShell contentSize="wide">
-      <header className="mb-5 flex flex-wrap items-end justify-between gap-3">
+      {/* Top Hero Sticker Header */}
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="text-sm font-medium text-primary">Find a place and hear from residents</p>
-          <h1 className="mt-1 font-heading text-2xl font-bold tracking-tight text-heading sm:text-3xl">Explore PG communities</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Browse honest reviews around Chennai.</p>
+          <div className="inline-flex items-center gap-1.5 rounded-lg border-2 border-black bg-[#FFD23F] px-2.5 py-1 text-xs font-black uppercase tracking-wider text-black shadow-[2px_2px_0px_#000]">
+            <Sparkles className="size-3.5 fill-black text-black" />
+            Verified Women Hostels & PGs
+          </div>
+          <h1 className="mt-2 font-heading text-2xl font-black tracking-tight text-black sm:text-4xl">
+            Explore Chennai PG Communities
+          </h1>
+          <p className="mt-1 text-sm font-bold text-gray-600">
+            Real resident stories, verified safety tags, and honest community ratings.
+          </p>
         </div>
-        <span className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-border bg-card px-3 text-sm font-medium text-body">
-          <MapPin className="size-4 text-primary" /> Chennai
-        </span>
-      </header>
 
-      <div className="mb-4 rounded-2xl border border-border bg-card p-3 shadow-sm sm:p-4">
-        <label htmlFor="pg-search" className="mb-2 block text-sm font-semibold text-heading">Search by name or area</label>
-        <div className="relative">
-          <SearchIcon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            id="pg-search"
-            value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-              setSelectedPgId(null);
-            }}
-            placeholder="Try Sunrise Ladies PG or Velachery"
-            className="pl-10"
-            type="search"
-          />
-        </div>
-        <div className="mt-3">
-          <p className="mb-2 text-xs font-medium text-muted-foreground">Browse by area</p>
-          <FilterPillBar options={[...AREA_OPTIONS]} value={area} onChange={(nextArea) => {
-            setArea(nextArea);
-            setSelectedPgId(null);
-          }} />
-        </div>
+        <button
+          type="button"
+          onClick={() => openCreatePg(query)}
+          className="inline-flex items-center gap-2 rounded-xl border-2 border-black bg-[#FF4B72] px-4 py-2.5 text-xs font-black text-white shadow-[3px_3px_0px_#000] transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_#000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[1px_1px_0px_#000]"
+        >
+          <Plus className="size-4 stroke-[3]" /> Add A PG
+        </button>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(280px,0.92fr)_minmax(340px,1.08fr)] lg:gap-5">
-        <section aria-label="PG communities" className="min-w-0">
-          <div className="mb-3 flex items-center justify-between gap-2">
-            <h2 className="font-heading text-base font-semibold text-heading">{isSearching ? "Search results" : "Popular communities"}</h2>
-            <span className="text-xs text-muted-foreground">
-              {isLoadingResults ? "Finding communities…" : `${visibleResults.length} ${visibleResults.length === 1 ? "place" : "places"}`}
-            </span>
-          </div>
+      {/* Neubrutalism Search & Filter Controls (Image 1 Layout) */}
+      <SearchFilterBar
+        query={query}
+        onQueryChange={(q) => {
+          setQuery(q);
+          setSelectedPgId(null);
+        }}
+        selectedArea={area}
+        onAreaChange={(a) => {
+          setArea(a);
+          setSelectedPgId(null);
+        }}
+        selectedBudget={budget}
+        onBudgetChange={setBudget}
+        selectedSort={sort}
+        onSortChange={setSort}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        activeCategory={category}
+        onCategoryChange={setCategory}
+        totalCount={visibleResults.length}
+      />
 
-          <div className="space-y-2.5">
-            {isLoadingResults && Array.from({ length: 3 }).map((_, index) => (
-              <Skeleton key={index} className="h-28 w-full rounded-2xl" />
-            ))}
-
-            {!isLoadingResults && visibleResults.map((pg) => (
-              <div key={pg.id}>
+      {/* Discovery Content Area: Split, Grid, or Map */}
+      {viewMode === "split" && (
+        <div className="grid gap-6 lg:grid-cols-12">
+          {/* Left Column: PG Cards (7 cols) */}
+          <section className="lg:col-span-7">
+            {isLoadingResults ? (
+              <div className="grid gap-4 sm:grid-cols-2">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <Skeleton key={i} className="h-72 w-full rounded-2xl border-2 border-black" />
+                ))}
+              </div>
+            ) : visibleResults.length > 0 ? (
+              <div className="grid gap-4 sm:grid-cols-2">
+                {visibleResults.map((pg) => (
+                  <PgCard
+                    key={pg.id}
+                    pg={pg}
+                    isSelected={selectedPgId === pg.id}
+                    onSelect={() => setSelectedPgId(pg.id)}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center rounded-2xl border-[2.5px] border-black bg-white p-8 text-center shadow-[4px_4px_0px_#000]">
+                <div className="flex size-14 items-center justify-center rounded-2xl border-2 border-black bg-[#FFE5EC] text-[#FF4B72] shadow-[2px_2px_0px_#000]">
+                  <SearchIcon className="size-7" />
+                </div>
+                <h3 className="mt-4 font-heading text-lg font-black text-black">
+                  {isSearching ? `No PGs found for “${query}”` : "No communities listed in this area"}
+                </h3>
+                <p className="mt-1 max-w-sm text-xs font-bold text-gray-600">
+                  Know a PG in {area === "All" ? "Chennai" : area}? Be the first to start its community page!
+                </p>
                 <button
                   type="button"
-                  aria-pressed={selectedPg?.id === pg.id}
-                  onClick={() => setSelectedPgId(pg.id)}
-                  className={`w-full rounded-2xl border bg-card p-3 text-left shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:p-4 ${selectedPg?.id === pg.id ? "border-primary ring-1 ring-primary/20" : "border-border hover:border-primary/50"}`}
+                  onClick={() => openCreatePg(query)}
+                  className="mt-4 inline-flex items-center gap-1.5 rounded-xl border-2 border-black bg-[#FFD23F] px-4 py-2 text-xs font-black text-black shadow-[2.5px_2.5px_0px_#000] hover:-translate-y-0.5 active:translate-y-0.5"
                 >
-                  <div className="flex items-start gap-3">
-                    <span className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary-hover sm:size-16">
-                      <Building2 className="size-6" />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <h3 className="truncate font-heading text-sm font-semibold text-heading sm:text-base">{pg.name}</h3>
-                          <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-                            <MapPin className="size-3.5 shrink-0" /> {pg.area}
-                          </p>
-                        </div>
-                        {pg.aggregateRating != null && (
-                          <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-primary-soft px-2 py-1 text-xs font-semibold text-primary-hover">
-                            <Star className="size-3 fill-current" /> {pg.aggregateRating.toFixed(1)}
-                          </span>
-                        )}
-                      </div>
-                      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                        <span className="inline-flex items-center gap-1"><MessageSquare className="size-3.5" /> {pg.reviewCount} reviews</span>
-                        <span className="inline-flex items-center gap-1"><Users className="size-3.5" /> {pg.memberCount} residents</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mt-3 flex items-center justify-between border-t border-border pt-2 text-xs">
-                    <span className="text-muted-foreground">{Object.keys(pg.tagAverages).length ? "Resident ratings available" : "Be the first to review"}</span>
-                    <span className="inline-flex items-center gap-1 font-semibold text-primary">Preview <ArrowUpRight className="size-3.5" /></span>
-                  </div>
+                  <Plus className="size-4" /> Add this PG now
                 </button>
-                {selectedPg?.id === pg.id && (
-                  <div className="mt-2 lg:hidden"><PgPreviewCard pg={pg} /></div>
-                )}
-              </div>
-            ))}
-
-            {!isLoadingResults && visibleResults.length === 0 && (
-              <div className="rounded-2xl border border-dashed border-border bg-card p-5 text-center sm:p-7">
-                <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-primary-soft text-primary">
-                  <SearchIcon className="size-5" />
-                </div>
-                <h3 className="mt-3 font-heading font-semibold text-heading">
-                  {isSearching ? `No PGs found for “${query}”` : "No communities in this area yet"}
-                </h3>
-                <p className="mt-1 text-sm text-muted-foreground">Add a place you know and start its community.</p>
-                <Button className="mt-4 gap-1.5" onClick={() => openCreatePg(query.trim())}>
-                  <Plus className="size-4" /> Add this PG
-                </Button>
               </div>
             )}
-          </div>
-        </section>
+          </section>
 
-        <aside className="hidden min-w-0 lg:block" aria-label="Selected community details">
-          {selectedPg ? <PgPreviewCard pg={selectedPg} /> : (
-            <div className="flex min-h-72 items-center justify-center rounded-2xl border border-dashed border-border bg-card p-8 text-center">
-              <div>
-                <Building2 className="mx-auto size-8 text-muted-foreground" />
-                <p className="mt-3 font-medium text-heading">Choose a community to preview</p>
-                <p className="mt-1 text-sm text-muted-foreground">See resident ratings and community details here.</p>
-              </div>
+          {/* Right Column: Sticky Chennai Map (5 cols) */}
+          <aside className="lg:col-span-5">
+            <div className="sticky top-20">
+              <ChennaiPgMap
+                pgs={visibleResults}
+                selectedPgId={selectedPgId}
+                onSelectPg={(id) => {
+                  setSelectedPgId(id);
+                }}
+              />
+            </div>
+          </aside>
+        </div>
+      )}
+
+      {viewMode === "grid" && (
+        <section>
+          {isLoadingResults ? (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <Skeleton key={i} className="h-72 w-full rounded-2xl border-2 border-black" />
+              ))}
+            </div>
+          ) : visibleResults.length > 0 ? (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {visibleResults.map((pg) => (
+                <PgCard
+                  key={pg.id}
+                  pg={pg}
+                  isSelected={selectedPgId === pg.id}
+                  onSelect={() => setSelectedPgId(pg.id)}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center rounded-2xl border-[2.5px] border-black bg-white p-8 text-center shadow-[4px_4px_0px_#000]">
+              <SearchIcon className="size-8 text-gray-400" />
+              <h3 className="mt-3 font-heading text-lg font-black text-black">No PGs found</h3>
+              <button
+                type="button"
+                onClick={() => openCreatePg(query)}
+                className="mt-4 rounded-xl border-2 border-black bg-[#FFD23F] px-4 py-2 text-xs font-black text-black shadow-[2px_2px_0px_#000]"
+              >
+                Add PG
+              </button>
             </div>
           )}
-        </aside>
-      </div>
+        </section>
+      )}
 
+      {viewMode === "map" && (
+        <section className="h-[680px]">
+          <ChennaiPgMap
+            pgs={visibleResults}
+            selectedPgId={selectedPgId}
+            onSelectPg={(id) => setSelectedPgId(id)}
+            className="h-full"
+          />
+        </section>
+      )}
+
+      {/* Neubrutalism Add PG Dialog */}
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-md rounded-2xl border-[3px] border-black bg-[#FFFDF9] p-6 shadow-[6px_6px_0px_#000]">
           <DialogHeader>
-            <DialogTitle>Add a new PG</DialogTitle>
-            <DialogDescription>
-              You&apos;ll become the founding member of this community. Chennai launch areas only.
+            <DialogTitle className="font-heading text-xl font-black text-black">Add New PG Community</DialogTitle>
+            <DialogDescription className="text-xs font-bold text-gray-600">
+              Start a community for women residents to share authentic experiences and safety ratings.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-3">
-            <div className="space-y-1.5">
-              <Label htmlFor="pg-name">PG name</Label>
-              <Input id="pg-name" value={newName} onChange={(e) => setNewName(e.target.value)} />
+
+          <div className="space-y-4 py-3">
+            <div>
+              <label htmlFor="pg-name" className="mb-1.5 block text-xs font-black uppercase tracking-wider text-black">
+                PG Name
+              </label>
+              <input
+                id="pg-name"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder="e.g. Sunrise Ladies Hostel"
+                className="w-full rounded-xl border-2 border-black bg-white px-3 py-2 text-sm font-bold text-black focus:outline-none focus:shadow-[3px_3px_0px_#000]"
+              />
             </div>
-            <div className="space-y-1.5">
-              <Label>Area</Label>
-              <Select value={newArea} onValueChange={(v) => setNewArea(v as ChennaiArea)}>
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {CHENNAI_AREAS.map((a) => (
-                    <SelectItem key={a} value={a}>
-                      {a}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+
+            <div>
+              <label htmlFor="pg-area" className="mb-1.5 block text-xs font-black uppercase tracking-wider text-black">
+                Chennai Area
+              </label>
+              <select
+                id="pg-area"
+                value={newArea}
+                onChange={(e) => setNewArea(e.target.value as ChennaiArea)}
+                className="w-full rounded-xl border-2 border-black bg-white px-3 py-2 text-sm font-bold text-black focus:outline-none focus:shadow-[3px_3px_0px_#000]"
+              >
+                {CHENNAI_AREAS.map((a) => (
+                  <option key={a} value={a}>{a}</option>
+                ))}
+              </select>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setAddOpen(false)}>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <button
+              type="button"
+              onClick={() => setAddOpen(false)}
+              className="rounded-xl border-2 border-black bg-white px-4 py-2 text-xs font-black text-black shadow-[2px_2px_0px_#000] hover:bg-gray-100"
+            >
               Cancel
-            </Button>
-            <Button disabled={!newName.trim() || createMutation.isPending} onClick={() => createMutation.mutate()}>
-              {createMutation.isPending ? "Creating…" : "Create PG"}
-            </Button>
+            </button>
+            <button
+              type="button"
+              disabled={!newName.trim() || createMutation.isPending}
+              onClick={() => createMutation.mutate()}
+              className="inline-flex items-center gap-1.5 rounded-xl border-2 border-black bg-[#FF4B72] px-5 py-2 text-xs font-black text-white shadow-[2.5px_2.5px_0px_#000] transition-transform hover:-translate-y-0.5 active:translate-y-0.5 disabled:opacity-50"
+            >
+              {createMutation.isPending ? "Creating..." : "Create Community"}
+            </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </AppShell>
-  );
-}
-
-function PgPreviewCard({ pg }: { pg: Pg }) {
-  const ratingEntries = Object.entries(pg.tagAverages).sort((a, b) => (b[1] ?? 0) - (a[1] ?? 0));
-
-  return (
-    <article className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-      <div className="relative flex h-36 items-center justify-center overflow-hidden bg-primary-soft sm:h-44">
-        {pg.coverImageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element -- PG cover images are optional API content.
-          <img src={pg.coverImageUrl} alt={`${pg.name} exterior`} className="absolute inset-0 size-full object-cover" />
-        ) : (
-          <div className="flex size-20 items-center justify-center rounded-2xl border border-white/70 bg-white/70 text-primary-hover shadow-sm">
-            <Building2 className="size-10" strokeWidth={1.5} />
-          </div>
-        )}
-        <span className="absolute bottom-3 left-3 rounded-full bg-white/95 px-3 py-1 text-xs font-medium text-heading shadow-sm">
-          <MapPin className="mr-1 inline size-3.5 text-primary" /> {pg.area}
-        </span>
-      </div>
-
-      <div className="p-4 sm:p-5">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-xs font-medium text-primary">Community overview</p>
-            <h2 className="mt-1 font-heading text-lg font-bold leading-tight text-heading sm:text-xl">{pg.name}</h2>
-            {pg.address && <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{pg.address}</p>}
-          </div>
-          <div className="shrink-0 rounded-xl bg-primary-soft px-3 py-2 text-center text-primary-hover">
-            <span className="flex items-center justify-center gap-1 font-heading text-lg font-bold">
-              {pg.aggregateRating == null ? "—" : pg.aggregateRating.toFixed(1)}
-              {pg.aggregateRating != null && <Star className="size-4 fill-current" />}
-            </span>
-            <span className="text-[11px]">{pg.aggregateRating == null ? "new" : "overall"}</span>
-          </div>
-        </div>
-
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          <div className="rounded-xl bg-secondary/60 p-3">
-            <p className="text-lg font-semibold text-heading">{pg.reviewCount}</p>
-            <p className="text-xs text-muted-foreground">resident reviews</p>
-          </div>
-          <div className="rounded-xl bg-secondary/60 p-3">
-            <p className="text-lg font-semibold text-heading">{pg.memberCount}</p>
-            <p className="text-xs text-muted-foreground">community members</p>
-          </div>
-        </div>
-
-        <section className="mt-4" aria-label="Resident ratings by category">
-          <div className="mb-2 flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-heading">Resident ratings</h3>
-            <span className="text-xs text-muted-foreground">out of 5</span>
-          </div>
-          {ratingEntries.length > 0 ? (
-            <div className="space-y-2.5">
-              {ratingEntries.slice(0, 4).map(([label, value]) => (
-                <div key={label} className="grid grid-cols-[4.5rem_1fr_2rem] items-center gap-2 text-xs">
-                  <span className="text-body">{label}</span>
-                  <span className="h-2 overflow-hidden rounded-full bg-secondary" aria-hidden="true">
-                    <span className="block h-full rounded-full bg-primary" style={{ width: `${Math.max(0, Math.min(5, value ?? 0)) * 20}%` }} />
-                  </span>
-                  <span className="text-right font-medium text-heading">{(value ?? 0).toFixed(1)}</span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="rounded-xl bg-secondary/50 p-3 text-sm text-muted-foreground">No ratings yet. Residents can share their experience here.</p>
-          )}
-        </section>
-
-        <div className="mt-5 grid grid-cols-2 gap-2">
-          <Link href={`/pg/${pg.id}`} className="inline-flex min-h-11 items-center justify-center rounded-lg bg-primary px-3 text-center text-sm font-medium text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">
-            View community
-          </Link>
-          <Link href={`/pg/${pg.id}/compose`} className="inline-flex min-h-11 items-center justify-center rounded-lg border border-border bg-background px-3 text-center text-sm font-medium text-heading hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">
-            Write a review
-          </Link>
-        </div>
-      </div>
-    </article>
   );
 }

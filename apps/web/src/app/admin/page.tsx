@@ -62,7 +62,7 @@ export default function AdminDashboard() {
               <p className="text-sm text-muted-foreground">No pending reports</p>
             ) : (
               <div className="space-y-3">
-                {(recentReports ?? []).map((r) => (
+                {(recentReports ?? []).map((r: any) => (
                   <div key={r.id} className="flex items-center justify-between rounded-lg border border-border p-3">
                     <div className="flex items-center gap-3">
                       <Badge variant={r.reason === "harassment" ? "destructive" : r.reason === "spam" ? "secondary" : "outline"}>

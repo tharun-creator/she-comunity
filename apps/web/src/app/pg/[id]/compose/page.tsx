@@ -61,10 +61,8 @@ export default function ComposePage({ params }: { params: Promise<{ id: string }
         type,
         title,
         body,
-        author: isAnonymous
-          ? { isAnonymous: true, anonymousTag: "Anonymous Resident" }
-          : { isAnonymous: false, displayName: profile?.displayName ?? "You" },
-        residencyClaim: residency,
+        isAnonymous,
+        residencyClaim: residency ?? undefined,
         ratingTags: type === "review" ? ratings : undefined,
         overallRating: type === "review" ? overallRating : undefined,
         pollOptions:
@@ -77,7 +75,11 @@ export default function ComposePage({ params }: { params: Promise<{ id: string }
     onSuccess: (post) => {
       queryClient.invalidateQueries({ queryKey: ["posts", id] });
       toast.success("Posted" + (isAnonymous ? " anonymously" : ""));
-      router.push(`/pg/${id}/post/${post.id}`);
+      if (post?.id) {
+        router.push(`/pg/${id}/post/${post.id}`);
+      } else {
+        router.push(`/pg/${id}`);
+      }
     },
     onError: () => toast.error("Couldn't post — try again."),
   });

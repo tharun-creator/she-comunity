@@ -3,7 +3,7 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowUpRight, MapPin, MessageCircle, Search, Sparkles, UsersRound } from "lucide-react";
+import { ArrowUpRight, MapPin, MessageCircle, Search, Sparkles, UsersRound, ShieldCheck } from "lucide-react";
 import { AppShell } from "@/components/shestays/app-shell";
 import { FeedPostCard } from "@/components/shestays/feed-post-card";
 import { InlineComposer } from "@/components/shestays/inline-composer";
@@ -54,105 +54,142 @@ function HomeFeed() {
 
   return (
     <AppShell rightSidebar={<div className="space-y-4"><TrendingDiscussionsPanel /><SuggestedPgsPanel /></div>}>
-      <section className="relative isolate mb-6 overflow-hidden rounded-[1.75rem] bg-primary-soft ring-1 ring-primary/10 sm:rounded-[2rem]">
-        <div className="pointer-events-none absolute -right-20 -top-28 -z-10 size-72 rounded-full border border-primary/10 sm:-right-14 sm:-top-40 sm:size-[26rem]" />
-        <div className="pointer-events-none absolute -right-8 -top-16 -z-10 size-48 rounded-full border border-primary/10 sm:-right-2 sm:-top-24 sm:size-72" />
-        <div className="grid lg:grid-cols-[1.08fr_0.92fr]">
-          <div className="px-5 pb-6 pt-6 sm:px-8 sm:pb-8 sm:pt-8 lg:py-10">
-            <div className="mb-5 inline-flex min-h-9 items-center gap-2 rounded-full border border-white/80 bg-white/75 px-3 text-xs font-semibold text-primary-hover shadow-sm">
-              <MapPin className="size-3.5" />
-              {areaParam ?? "Chennai"} · women helping women
+      {/* Neubrutalism Hero Banner */}
+      <section className="relative mb-6 overflow-hidden rounded-2xl border-[2.5px] border-black bg-[#FFE5EC] shadow-[5px_5px_0px_#000]">
+        <div className="grid lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="p-6 sm:p-8">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-lg border-2 border-black bg-[#FFD23F] px-3 py-1 text-xs font-black uppercase tracking-wider text-black shadow-[2px_2px_0px_#000]">
+              <MapPin className="size-3.5 fill-black text-black" />
+              {areaParam ?? "Chennai"} · Women Community First
             </div>
-            <h1 className="max-w-[15ch] font-heading text-[2rem] font-bold leading-[1.08] tracking-[-0.04em] text-heading text-balance sm:text-4xl">
-              Find a place that feels like <span className="text-primary">yours.</span>
+            
+            <h1 className="font-heading text-3xl font-black leading-tight tracking-tight text-black sm:text-4xl lg:text-5xl">
+              Find a place that feels like <span className="bg-[#FF4B72] px-2 py-0.5 text-white rounded-lg">yours.</span>
             </h1>
-            <p className="mt-3 max-w-[48ch] text-sm leading-6 text-body sm:text-base">
-              Real stories from women who know the streets, the people, and what daily life is really like.
+            
+            <p className="mt-3 max-w-md text-sm font-bold text-gray-700 sm:text-base">
+              Real, unfiltered stories from women who lived there. Check safety ratings, warden rules, and real food quality.
             </p>
-            <div className="mt-5 flex flex-wrap gap-2.5">
+
+            <div className="mt-6 flex flex-wrap gap-3">
               <button
                 type="button"
                 onClick={() => router.push("/search")}
-                className="inline-flex min-h-11 items-center gap-2 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-primary-soft"
+                className="inline-flex items-center gap-2 rounded-xl border-2 border-black bg-[#FF4B72] px-5 py-2.5 text-sm font-black text-white shadow-[3px_3px_0px_#000] transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_#000] active:translate-x-0.5 active:translate-y-0.5"
               >
-                Explore communities <ArrowUpRight className="size-4" />
+                Find PGs & Hostels <ArrowUpRight className="size-4.5 stroke-[2.5]" />
               </button>
+              
               <button
                 type="button"
                 onClick={openComposer}
-                className="inline-flex min-h-11 items-center gap-2 rounded-full border border-primary/20 bg-white/75 px-4 text-sm font-semibold text-heading transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                className="inline-flex items-center gap-2 rounded-xl border-2 border-black bg-white px-5 py-2.5 text-sm font-black text-black shadow-[3px_3px_0px_#000] transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_#000] active:translate-x-0.5 active:translate-y-0.5"
               >
-                Share your story <MessageCircle className="size-4 text-primary" />
+                Write A Review <MessageCircle className="size-4 text-[#FF4B72]" />
               </button>
             </div>
-            <div className="mt-6 flex items-center gap-4 border-t border-primary/10 pt-4 text-xs text-body sm:gap-6">
-              <span className="inline-flex items-center gap-1.5"><UsersRound className="size-4 text-primary" /><strong className="tabular-nums text-heading">{feed?.length ?? "—"}</strong> stories nearby</span>
-              <span className="inline-flex items-center gap-1.5"><Sparkles className="size-4 text-primary" /><strong className="tabular-nums text-heading">{CHENNAI_AREAS.length}</strong> Chennai areas</span>
+
+            <div className="mt-6 flex items-center gap-4 border-t-2 border-black/10 pt-4 text-xs font-bold text-black sm:gap-6">
+              <span className="inline-flex items-center gap-1.5">
+                <UsersRound className="size-4 text-[#FF4B72]" />
+                <strong>{feed?.length ?? "—"}</strong> stories nearby
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <ShieldCheck className="size-4 text-[#05D5A4]" />
+                <strong>{CHENNAI_AREAS.length}</strong> Chennai areas covered
+              </span>
             </div>
           </div>
 
-          <div className="relative hidden min-h-64 items-center justify-center p-6 lg:flex lg:p-8">
-            <div className="absolute right-[12%] top-[12%] size-3 rounded-full bg-primary/50" />
-            <div className="absolute bottom-[16%] left-[13%] size-2 rounded-full bg-primary/40" />
-            <div className="absolute right-[18%] bottom-[13%] size-2 rounded-full bg-primary/30" />
-            <div className="relative w-full max-w-sm rotate-[1deg] rounded-2xl border border-white/90 bg-white p-5 shadow-[0_20px_50px_-30px_rgba(107,33,61,0.45)]">
+          {/* Right Sticker Feature Card */}
+          <div className="relative hidden items-center justify-center p-6 lg:flex">
+            <div className="w-full max-w-sm rotate-1 rounded-2xl border-[2.5px] border-black bg-white p-5 shadow-[4px_4px_0px_#000]">
               <div className="flex items-center justify-between">
-                <span className="inline-flex items-center gap-2 text-xs font-semibold text-primary-hover">
-                  <span className="flex size-8 items-center justify-center rounded-full bg-primary-soft"><Sparkles className="size-4" /></span>
-                  A note from your neighborhood
+                <span className="inline-flex items-center gap-1.5 rounded-md border border-black bg-[#FFD23F] px-2 py-0.5 text-xs font-black text-black">
+                  <Sparkles className="size-3.5 fill-black" />
+                  Resident Spotlight
                 </span>
-                <span className="rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium text-muted-foreground">Today</span>
+                <span className="rounded-md border border-black bg-gray-100 px-2 py-0.5 text-[10px] font-black text-black">
+                  Recent
+                </span>
               </div>
+              
               {featuredStory ? (
                 <>
-                  <p className="mt-5 font-heading text-xl font-semibold leading-snug text-heading text-balance">“{featuredStory.title}”</p>
-                  <p className="mt-2 line-clamp-2 text-sm leading-6 text-muted-foreground">{featuredStory.body}</p>
-                  <div className="mt-5 flex items-center justify-between border-t border-border pt-3">
-                    <span className="text-xs font-medium text-body">{featuredStory.pgName}</span>
-                    <span className="text-xs text-muted-foreground">{featuredStory.pgArea}</span>
+                  <p className="mt-4 font-heading text-lg font-black leading-snug text-black">
+                    “{featuredStory.title}”
+                  </p>
+                  <p className="mt-2 line-clamp-3 text-xs font-bold text-gray-600">
+                    {featuredStory.body}
+                  </p>
+                  <div className="mt-4 flex items-center justify-between border-t-2 border-black/10 pt-3 text-xs font-bold">
+                    <span className="rounded bg-[#FFE5EC] px-2 py-0.5 text-[#FF4B72]">{featuredStory.pgName}</span>
+                    <span className="text-gray-500">{featuredStory.pgArea}</span>
                   </div>
                 </>
               ) : (
-                <p className="mt-5 font-heading text-xl font-semibold leading-snug text-heading">Your neighborhood stories are on their way.</p>
+                <p className="mt-4 font-heading text-base font-black text-black">Community reviews are arriving daily.</p>
               )}
             </div>
           </div>
         </div>
       </section>
 
+      {/* Quick Search Shortcut Bar (Neubrutalism) */}
       <button
         type="button"
         onClick={() => router.push("/search")}
-        className="mb-4 flex min-h-12 w-full items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 text-left text-sm text-muted-foreground shadow-[0_8px_24px_-22px_rgba(8,24,40,0.45)] transition-colors hover:border-primary/30 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        className="mb-6 flex w-full items-center gap-3 rounded-2xl border-2 border-black bg-white p-3.5 text-left shadow-[3px_3px_0px_#000] transition-transform hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_#000] active:translate-y-0.5"
       >
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-secondary text-primary"><Search className="size-4" /></span>
-        <span className="min-w-0 flex-1 truncate">Find a PG by name, area, or what matters to you</span>
-        <ArrowUpRight className="size-4 shrink-0 text-muted-foreground" />
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-xl border-2 border-black bg-[#FFD23F] text-black">
+          <Search className="size-4.5" />
+        </span>
+        <span className="flex-1 text-sm font-bold text-gray-500">
+          Search PGs by name, area (OMR, Velachery, Nungambakkam...)
+        </span>
+        <span className="rounded-lg border-2 border-black bg-[#FFE5EC] p-1.5 text-black">
+          <ArrowUpRight className="size-4" />
+        </span>
       </button>
 
-      <div id="story-composer"><InlineComposer /></div>
+      {/* Composer Container */}
+      <div id="story-composer" className="mb-6">
+        <InlineComposer />
+      </div>
 
-      <div className="mb-4 flex flex-wrap items-end justify-between gap-3 border-b border-border pb-3">
+      {/* Feed Filters Header */}
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b-2 border-black pb-3">
         <div>
-          <h2 className="font-heading text-lg font-semibold tracking-tight text-heading">What neighbours are saying</h2>
-          <p className="mt-0.5 text-xs text-muted-foreground">First-hand notes from around Chennai</p>
+          <h2 className="font-heading text-xl font-black text-black">What Residents Are Saying</h2>
+          <p className="text-xs font-bold text-gray-500">Honest notes and safety reports from verified women</p>
         </div>
         <FilterPillBar options={[...POST_TYPE_OPTIONS]} value={postTypeFilter} onChange={setPostTypeFilter} />
       </div>
 
+      {/* Feed List */}
       <div className="space-y-4">
         {isLoading &&
-          Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-48 w-full rounded-3xl" />)}
+          Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-48 w-full rounded-2xl border-2 border-black" />
+          ))}
         {visibleFeed?.map((post, index) => (
           <FeedPostCard key={post.id} post={post} featured={index === 0} />
         ))}
         {visibleFeed?.length === 0 && (
-          <div className="rounded-[1.5rem] border border-dashed border-primary/25 bg-primary-soft/35 px-6 py-9 text-center">
-            <span className="mx-auto flex size-12 items-center justify-center rounded-full bg-white text-primary shadow-sm"><MessageCircle className="size-5" /></span>
-            <h3 className="mt-4 font-heading text-lg font-semibold text-heading">Your neighborhood story starts here</h3>
-            <p className="mx-auto mt-1 max-w-sm text-sm leading-6 text-muted-foreground">Find a community or share something helpful for the next woman choosing a place.</p>
-            <button type="button" onClick={() => router.push("/search")} className="mt-4 inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">
-              Find a community <ArrowUpRight className="size-4" />
+          <div className="rounded-2xl border-[2.5px] border-black bg-white p-8 text-center shadow-[4px_4px_0px_#000]">
+            <span className="mx-auto flex size-12 items-center justify-center rounded-xl border-2 border-black bg-[#FFE5EC] text-[#FF4B72]">
+              <MessageCircle className="size-6" />
+            </span>
+            <h3 className="mt-4 font-heading text-lg font-black text-black">No posts in this category yet</h3>
+            <p className="mx-auto mt-1 max-w-sm text-xs font-bold text-gray-600">
+              Be the first to share an honest story or ask a question about your hostel.
+            </p>
+            <button
+              type="button"
+              onClick={openComposer}
+              className="mt-4 inline-flex items-center gap-1.5 rounded-xl border-2 border-black bg-[#FFD23F] px-4 py-2 text-xs font-black text-black shadow-[2px_2px_0px_#000]"
+            >
+              Share your story
             </button>
           </div>
         )}
